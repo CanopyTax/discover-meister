@@ -1,0 +1,43 @@
+.git/
+.gitignore
+Dockerfile
+docker-compose.yml
+.gitlab-ci.yml
+cnpy-deployment.yaml
+tests/
+
+
+# js stuff
+**/babel-helpers.js
+jspm_packages
+node_modules
+dmeister/static/build/
+dmeister/static/coverage/
+
+.vscode/
+.idea/
+readme.md
+.coverage
+.pylintrc
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+
+# PyBuilder
+target/

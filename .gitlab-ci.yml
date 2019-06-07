@@ -1,0 +1,82 @@
+image: canopytax/dind
+
+stages:
+    - build
+    - test
+    - push-to-dockerhub
+    - deploy-stage
+    - deploy-prod
+
+variables:
+  REPO_NAME: canopytax/toggle-meister
+  CONTAINER_IMAGE: docker.io/$REPO_NAME:$CI_COMMIT_SHA
+  REGISTRY: docker.io
+  DOCKER_DRIVER: overlay
+
+build:
+  stage: build
+  before_script:
+    - mkdir -p $HOME/.docker
+    - echo $DOCKER_AUTH_CONFIG > $HOME/.docker/config.json
+  script:
+    - docker build --pull -t $CONTAINER_IMAGE .
+    - docker push $REPO_NAME:$CI_COMMIT_SHA
+
+lint:
+  image: $REPO_NAME:$CI_COMMIT_SHA
+  stage: test
+  script:
+    - invoke lint
+
+test:
+  services:
+    - postgres:9.6-alpine
+  image: $REPO_NAME:$CI_COMMIT_SHA
+  stage: test
+  script:
+    - export DATABASE_URL=postgres
+    - export IS_LOCAL=true
+    - alembic upgrade head
+    - python3 -m pytest --cov dmeister
+
+push-to-dockerhub:
+  stage: push-to-dockerhub
+  before_script:
+    - mkdir -p $HOME/.docker
+    - echo $DOCKER_AUTH_CONFIG > $HOME/.docker/config.json
+  script:
+    - docker pull $REPO_NAME:$CI_COMMIT_SHA
+    - docker tag $REPO_NAME:$CI_COMMIT_SHA $REPO_NAME:latest
+    - docker push $REPO_NAME:latest
+  only:
+    - master
+
+.deploy: &deploy
+  image: canopytax/deployment
+  script:
+    - /scripts/canopy-deploy.py --docker-tag "$CI_COMMIT_SHA"
+  only:
+    - master
+  allow_failure: false
+
+deploy-integ:
+  <<: *deploy
+  stage: deploy-stage
+  environment:
+    name: stage
+    url: https://discover-integ.canopy.dev
+
+deploy-stage:
+  <<: *deploy
+  stage: deploy-stage
+  environment:
+    name: stage
+    url: https://discover-stage.canopy.dev
+
+deploy-prod:
+  <<: *deploy
+  stage: deploy-prod
+  environment:
+    name: production
+    url: https://discover.canopy.dev
+  when: manual
