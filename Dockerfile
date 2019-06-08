@@ -20,13 +20,13 @@ RUN export PYCURL_SSL_LIBRARY=openssl && \
 
 # build frontend
 COPY dmeister /app/dmeister/static
-RUN apk --no-cache add nodejs npm git && \
-    cd /app/dmeister/static && \
-    npm install && \
-    npm run build && \
-    apk --no-cache del nodejs git && \
-    rm -rf node_modules spec src bin &&  \
-    cd /app
+#RUN apk --no-cache add nodejs npm git && \
+#    cd /app/dmeister/static && \
+#    npm install && \
+#    npm run build && \
+#    apk --no-cache del nodejs git && \
+#    rm -rf node_modules spec src bin &&  \
+#    cd /app
 
 
 EXPOSE 8080
