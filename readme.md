@@ -1,6 +1,5 @@
 # Discover Meister!
 
-
 ![logo](https://assets.pinshape.com/uploads/image/file/26649/container_star-wars-mse-6-mouse-droid-body-for-1-24-rc-car-chassis-3d-printing-26649.JPG)
 
 Discover-Meister is a discovery service that goes the last mile.
