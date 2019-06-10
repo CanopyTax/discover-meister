@@ -65,9 +65,9 @@ push-to-dockerhub:
 
 deploy-integ:
   <<: *deploy
-  stage: deploy-stage
+  stage: deploy-integ
   environment:
-    name: stage
+    name: integ
     url: https://discover-integ.canopy.dev
 
 deploy-stage:
