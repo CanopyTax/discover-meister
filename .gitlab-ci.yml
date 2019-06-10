@@ -25,6 +25,8 @@ build:
 lint:
   image: $REPO_NAME:$CI_COMMIT_SHA
   stage: test
+  before_script:
+    - poetry install
   script:
     - invoke lint
 
@@ -33,6 +35,8 @@ test:
     - postgres:9.6-alpine
   image: $REPO_NAME:$CI_COMMIT_SHA
   stage: test
+  before_script:
+    - poetry install
   script:
     - export DATABASE_URL=postgres
     - export IS_LOCAL=true

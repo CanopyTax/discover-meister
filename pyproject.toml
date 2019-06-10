@@ -21,12 +21,12 @@ ujson = "^1.35"
 sentry-asgi = "^0.1.5"
 schedule = "^0.6.0"
 alembic = "^1.0"
+requests = "^2.21"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7"
 pytest = "^4.4"
 jmespath = "^0.9.4"
-requests = "^2.21"
 pytest-cov = "^2.6"
 
 
