@@ -8,7 +8,7 @@ stages:
     - deploy-prod
 
 variables:
-  REPO_NAME: canopytax/toggle-meister
+  REPO_NAME: canopytax/dmeister
   CONTAINER_IMAGE: docker.io/$REPO_NAME:$CI_COMMIT_SHA
   REGISTRY: docker.io
   DOCKER_DRIVER: overlay
