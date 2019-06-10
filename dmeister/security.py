@@ -26,9 +26,7 @@ def get_hostname(request):
 
 
 class GoogleAuthBackend(AuthenticationBackend):
-    allowed_patterns = [re.compile(r'^/api/envs/.*/toggles$'),
-                        re.compile(r'^/api/features'),
-                        re.compile(r'^/heartbeat$')]
+    allowed_patterns = [re.compile(r'^/heartbeat$')]
 
     def __init__(self, id, secret, org):
         super().__init__()
@@ -58,6 +56,10 @@ class GoogleAuthBackend(AuthenticationBackend):
             return PlainTextResponse('Invalid user', status_code=403)
 
     async def authenticate(self, request: Request):
+        if request['method'] == 'GET' and \
+                any((x.match(request.url.path) for x in self.allowed_patterns)):
+            return AuthCredentials(['unauthenticated']), UnauthenticatedUser()
+        
         host = request.headers.get('host')
         if 'local' in host or 'internal' in host or \
                 '.' not in host:
