@@ -58,8 +58,9 @@ class GoogleAuthBackend(AuthenticationBackend):
             return PlainTextResponse('Invalid user', status_code=403)
 
     async def authenticate(self, request: Request):
-        if 'local' in request['host'] or 'internal' in request['host'] or \
-                '.' not in request['host']:
+        host = request.headers.get('host')
+        if 'local' in host or 'internal' in host or \
+                '.' not in host:
             return AuthCredentials(['unauthenticated']), UnauthenticatedUser()
 
         elif self.id is None:
