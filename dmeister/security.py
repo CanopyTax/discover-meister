@@ -59,7 +59,7 @@ class GoogleAuthBackend(AuthenticationBackend):
         if request['method'] == 'GET' and \
                 any((x.match(request.url.path) for x in self.allowed_patterns)):
             return AuthCredentials(['unauthenticated']), UnauthenticatedUser()
-        
+
         host = request.headers.get('host')
         if 'local' in host or 'internal' in host or \
                 '.' not in host:
