@@ -41,6 +41,12 @@ def test_put_service(client):
 
     response = client.put('/api/services', json=body)
     assert response.status_code == 200
+    j = response.json()
+    assert 'name' in j
+    assert 'protocols' in j
+    assert 'squad' in j
+    assert 'meta' in j
+    assert 'endpoints' in j
 
 
 def test_get_service(client):

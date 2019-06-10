@@ -14,8 +14,13 @@ async def insert_service(service_name, protocols, squad, meta):
         index_elements=[db.services.c.name],
         set_=values
     ).returning(text('*'))
-    results = await pg.fetchrow(upsert)
-    return results
+    result = await pg.fetchrow(upsert)
+    return {
+        'name': result['name'],
+        'protocols': json.loads(result['protocols']),
+        'squad': result['squad'],
+        'meta': json.loads(result['meta'])
+    }
 
 
 async def get_services(service_name=None):

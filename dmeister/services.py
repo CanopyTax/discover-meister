@@ -20,6 +20,9 @@ async def get_service(request: Request):
 
 
 async def put_service(request: Request):
+    host = request.url.scheme + '://' + request.url.hostname
+    if request.url.port:
+        host += request.url.port
     body = await request.json()
     service_name = body.get('name')
     protocols = body.get('protocols')
@@ -65,5 +68,7 @@ async def put_service(request: Request):
         return JSONResponse({'message': 'failed to register existing paths',
                              'paths': taken_endpoints}, status_code=409)
 
-    results = await serviceda.insert_service(service_name, protocols, squad, meta)
-    return JSONResponse(results[0])
+    result = await serviceda.insert_service(service_name, protocols, squad, meta)
+
+    result['endpoints'] = f'{host}/services/{service_name}/endpoints'
+    return JSONResponse(result)
