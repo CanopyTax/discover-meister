@@ -58,9 +58,10 @@ class GoogleAuthBackend(AuthenticationBackend):
             return PlainTextResponse('Invalid user', status_code=403)
 
     async def authenticate(self, request: Request):
-        if request['method'] == 'GET' and \
-                any((x.match(request.url.path) for x in self.allowed_patterns)):
-            return AuthCredentials(['unauthenticated']), UnauthenticatedUser()
+        if 'local' in request['host'] or 'internal' in request['host'] or \
+                '.' not in request['host']:
+            username = 'user@internal.com'
+            return AuthCredentials(['authenticated']), SimpleUser(username=username)
 
         elif self.id is None:
             # local dev

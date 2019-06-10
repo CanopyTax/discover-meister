@@ -18,8 +18,7 @@ from .security import GoogleAuthBackend
 
 
 DEBUG = os.getenv('DEBUG', 'false').lower() == 'true'
-# LOCAL_DEV = os.getenv('IS_LOCAL', 'false').lower() == 'true'
-LOCAL_DEV = True  # remove me once auth is working
+LOCAL_DEV = os.getenv('IS_LOCAL', 'false').lower() == 'true'
 GOOGLE_ID = os.getenv('GOOGLE_ID')
 GOOGLE_SECRET = os.getenv('GOOGLE_SECRET')
 GOOGLE_ORG = os.getenv('GOOGLE_ORG')
