@@ -24,7 +24,7 @@ def test_index(client):
     assert response.status_code == 200
 
 
-def test_get_services(client):
+def test_get_services_smoke(client):
     response = client.get('/api/services')
     assert response.status_code == 200
 
@@ -102,7 +102,6 @@ def test_add_new_service_existing_route(client):
         'endpoints': [{'path': '/api/highground', 'methods': ['post', 'get']},
                       {'path': '/api/younglings', 'methods': ['delete']}]
     }
-
     response = client.put('/api/services', json=body)
     assert response.status_code == 409
     body = response.json()
