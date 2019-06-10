@@ -60,8 +60,7 @@ class GoogleAuthBackend(AuthenticationBackend):
     async def authenticate(self, request: Request):
         if 'local' in request['host'] or 'internal' in request['host'] or \
                 '.' not in request['host']:
-            username = 'user@internal.com'
-            return AuthCredentials(['authenticated']), SimpleUser(username=username)
+            return AuthCredentials(['unauthenticated']), UnauthenticatedUser()
 
         elif self.id is None:
             # local dev
