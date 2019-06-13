@@ -8,7 +8,6 @@ services = Table(
     'services', METADATA,
     Column('name', String(40), unique=True, primary_key=True),
     Column('protocols', JSONB),
-    Column('squad', String, nullable=True),
     Column('meta', JSONB)
 )
 

@@ -7,8 +7,8 @@ from sqlalchemy.dialects.postgresql import insert
 from . import db
 
 
-async def insert_service(service_name, protocols, squad, meta):
-    values = dict(name=service_name, protocols=protocols, squad=squad, meta=meta)
+async def insert_service(service_name, protocols, meta):
+    values = dict(name=service_name, protocols=protocols, meta=meta)
     upsert = insert(db.services).values(**values) \
         .on_conflict_do_update(
         index_elements=[db.services.c.name],
@@ -18,7 +18,6 @@ async def insert_service(service_name, protocols, squad, meta):
     return {
         'name': result['name'],
         'protocols': json.loads(result['protocols']),
-        'squad': result['squad'],
         'meta': json.loads(result['meta'])
     }
 
@@ -31,5 +30,4 @@ async def get_services(service_name=None):
     results = await pg.fetch(query)
     return [{'name': row['name'],
              'protocols': json.loads(row['protocols']),
-             'squad': row['squad'],
              'meta': json.loads(row['meta'])} for row in results]

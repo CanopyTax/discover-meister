@@ -33,8 +33,7 @@ def test_put_service(client):
     body = {
         'name': 'obi_wan',
         'protocols': {'http': {'host': 'http://obiwan'}},
-        'squad': 'council',
-        'meta': {'master': True},
+        'meta': {'master': True, 'squad': 'council'},
         'endpoints': [{'path': '/api/highground', 'methods': ['post', 'get']},
                       {'path': '/api/hello_there', 'methods': ['get']}]
     }
@@ -44,7 +43,6 @@ def test_put_service(client):
     j = response.json()
     assert 'name' in j
     assert 'protocols' in j
-    assert 'squad' in j
     assert 'meta' in j
     assert 'endpoints' in j
 
@@ -103,8 +101,7 @@ def test_add_new_service_existing_route(client):
     body = {
         'name': 'anakin',
         'protocols': {'http': {'host': 'http://anakin.skywalker'}},
-        'squad': 'council',
-        'meta': {'master': False},
+        'meta': {'master': False, 'squad': 'council'},
         'endpoints': [{'path': '/api/highground', 'methods': ['post', 'get']},
                       {'path': '/api/younglings', 'methods': ['delete']}]
     }
@@ -114,3 +111,67 @@ def test_add_new_service_existing_route(client):
     assert 'message' in body
     assert 'paths' in body
     assert '/api/highground' in body['paths']
+
+
+def test_unlock_route(client):
+    body = {
+        'endpoints': [
+            {'path': '/api/highground', 'locked': False}]
+    }
+    response = client.patch('/api/services/obi_wan/endpoints', json=body)
+    assert response.status_code == 200
+    body = response.json()
+    endpoints = body.get('endpoints')
+    assert isinstance(endpoints, list)
+    assert len(endpoints) == 1
+
+
+def test_takeover_route(client):
+    body = {
+        'name': 'anakin',
+        'protocols': {'http': {'host': 'http://anakin.skywalker'}},
+        'meta': {'master': False, 'squad': 'council'},
+        'endpoints': [{'path': '/api/highground', 'methods': ['post', 'get'], 'toggle': 'death-star'},
+                      {'path': '/api/younglings', 'methods': ['delete']}]
+    }
+    response = client.put('/api/services', json=body)
+    assert response.status_code == 200
+    j = response.json()
+    assert 'name' in j
+    assert 'protocols' in j
+    assert 'meta' in j
+    assert 'endpoints' in j
+
+
+def test_add_new_service_transitioning_route(client):
+    body = {
+        'name': 'luke',
+        'protocols': {'http': {'host': 'http://luke.skywalker'}},
+        'meta': {'master': True, 'squad': 'jedi'},
+        'endpoints': [{'path': '/api/highground', 'methods': ['patch']}]
+    }
+    response = client.put('/api/services', json=body)
+    assert response.status_code == 409
+    body = response.json()
+    assert 'message' in body
+    assert 'paths' in body
+    assert '/api/highground' in body['paths']
+
+
+def test_complete_route_takeover(client):
+    body = {
+        'name': 'obi_wan',
+        'protocols': {'http': {'host': 'http://obiwan'}},
+        'meta': {'master': True, 'squad': 'council'},
+        'endpoints': [{'path': '/api/hello_there', 'methods': ['get']}]
+    }
+    put_response = client.put('/api/services', json=body)
+    assert put_response.status_code == 200
+    get_response = client.get('/api/endpoints')
+    assert get_response.status_code == 200
+    body = get_response.json()
+    endpoints = body.get('endpoints')
+    for endpoint in endpoints:
+        if endpoint['path'] == '/api/highground':
+            assert endpoint['service'] == 'anakin'
+            assert not endpoint.get('new_service')
