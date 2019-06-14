@@ -38,7 +38,7 @@ def test_put_service(client):
                       {'path': '/api/hello_there', 'methods': ['get']}]
     }
 
-    response = client.put('/api/services', json=body)
+    response = client.put('/api/services/obi_wan', json=body)
     assert response.status_code == 200
     j = response.json()
     assert 'name' in j
@@ -105,7 +105,7 @@ def test_add_new_service_existing_route(client):
         'endpoints': [{'path': '/api/highground', 'methods': ['post', 'get']},
                       {'path': '/api/younglings', 'methods': ['delete']}]
     }
-    response = client.put('/api/services', json=body)
+    response = client.put('/api/services/anakin', json=body)
     assert response.status_code == 409
     body = response.json()
     assert 'message' in body

@@ -31,7 +31,7 @@ async def put_service(request: Request):
     if request.url.port:
         host += request.url.port
     body = await request.json()
-    service_name = body.get('name')
+    service_name = request.path_params.get('name')
     protocols = body.get('protocols')
     endpoints = body.get('endpoints')
     meta = body.get('meta')
