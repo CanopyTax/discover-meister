@@ -134,7 +134,7 @@ def test_takeover_route(client):
         'endpoints': [{'path': '/api/highground', 'methods': ['post', 'get'], 'toggle': 'death-star'},
                       {'path': '/api/younglings', 'methods': ['delete']}]
     }
-    response = client.put('/api/services', json=body)
+    response = client.put('/api/services/anakin', json=body)
     assert response.status_code == 200
     j = response.json()
     assert 'name' in j
@@ -150,7 +150,7 @@ def test_add_new_service_transitioning_route(client):
         'meta': {'master': True, 'squad': 'jedi'},
         'endpoints': [{'path': '/api/highground', 'methods': ['patch']}]
     }
-    response = client.put('/api/services', json=body)
+    response = client.put('/api/services/luke', json=body)
     assert response.status_code == 409
     body = response.json()
     assert 'message' in body
@@ -165,7 +165,7 @@ def test_complete_route_takeover(client):
         'meta': {'master': True, 'squad': 'council'},
         'endpoints': [{'path': '/api/hello_there', 'methods': ['get']}]
     }
-    put_response = client.put('/api/services', json=body)
+    put_response = client.put('/api/services/obi_wan', json=body)
     assert put_response.status_code == 200
     get_response = client.get('/api/endpoints')
     assert get_response.status_code == 200
