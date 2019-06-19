@@ -1,2 +1,0 @@
-# discover-meister
-Discovery Service
