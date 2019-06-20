@@ -29,7 +29,7 @@ async def get_service(request: Request):
 async def put_service(request: Request):
     host = request.url.scheme + '://' + request.url.hostname
     if request.url.port:
-        host += request.url.port
+        host += str(request.url.port)
     body = await request.json()
     service_name = request.path_params.get('name')
     protocols = body.get('protocols')
