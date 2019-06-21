@@ -93,7 +93,7 @@ def init():
 
     @app.exception_handler(404)
     async def serve_index_on_unknown_routes(request, exc):
-        if request.path.startswith('/api'):
+        if request.url.path.startswith('/api'):
             return JSONResponse({'message': 'not found'}, status_code=404)
         else:
             return await index_html(request)
