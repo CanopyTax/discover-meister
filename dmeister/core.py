@@ -89,7 +89,14 @@ def init():
     app.add_route('/heartbeat', health.get_health)
     app.add_route('/', index_html)
 
-    app.mount('/', app=StaticFiles(directory='dmeister/static'), name='static')
+    app.mount('/public/', app=StaticFiles(directory='dmeister/static/public'), name='static')
+
+    @app.exception_handler(404)
+    async def serve_index_on_unknown_routes(request, exc):
+        if request.path.startswith('/api'):
+            return JSONResponse({'message': 'not found'}, status_code=404)
+        else:
+            return await index_html(request)
 
     return app
 
