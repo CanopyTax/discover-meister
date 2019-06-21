@@ -35,6 +35,13 @@ def test_put_service(client):
         'protocols': {'http': {'host': 'http://obiwan'}},
         'meta': {'master': True, 'squad': 'council'},
         'endpoints': [{'path': '/api/highground', 'methods': ['post', 'get']},
+                      {'path': '/api/the_force', 'methods': ['post', 'get']},
+                      {'path': '/api/wookies/{name}/bandoliers', 'methods': ['post', 'get']},
+                      {'path': '/api/clones/{id}/blasters/{id}', 'methods': ['post', 'get']},
+                      {'path': '/api/bad_feeling/{about_this}', 'methods': ['post', 'get']},
+                      {'path': '/api/bad_feeling/traps', 'methods': ['post', 'get']},
+                      {'path': '/api/mouse_droid/{id}:discover', 'methods': ['post', 'get']},
+                      {'path': '/api/mouse_droid/favorite:discover', 'methods': ['post', 'get']},
                       {'path': '/api/hello_there', 'methods': ['get']}]
     }
 
@@ -95,6 +102,48 @@ def test_get_endpoints(client):
             found = True
 
     assert found
+
+
+def test_search_endpoints(client):
+    highground_path = '/api/highground'
+    wookies_wildcard_path = '/api/wookies/chewbacca/bandoliers'
+    wookies_non_existent_path = '/api/wookies/chewbacca/something_else/bandoliers'
+    clones_non_existent_path = '/api/clones/ABC123'
+    bad_feeling_wildcard_path = '/api/bad_feeling/its_a-trap'
+    bad_feeling_traps_path = '/api/bad_feeling/traps'
+    bad_feeling_non_existent_path = '/api/bad_feeling/its.a-trap'
+    mouse_droid_wildcard_path = '/api/mouse_droid/123ABC:discover'
+    mouse_droid_favorite_path = '/api/mouse_droid/favorite:discover'
+
+    body = {'paths': [
+        highground_path,
+        wookies_wildcard_path,
+        wookies_non_existent_path,
+        clones_non_existent_path,
+        bad_feeling_wildcard_path,
+        bad_feeling_traps_path,
+        bad_feeling_non_existent_path,
+        mouse_droid_wildcard_path,
+        mouse_droid_favorite_path
+    ]}
+
+    response = client.post('/api/endpoints:search', json=body)
+    assert response.status_code == 200
+    resp_body = response.json()
+
+    for path in body['paths']:
+        assert path in resp_body
+
+    assert resp_body[highground_path]['path'] == '/api/highground'
+    assert resp_body[wookies_wildcard_path]['path'] == '/api/wookies/{name}/bandoliers'
+    assert resp_body[bad_feeling_wildcard_path]['path'] == '/api/bad_feeling/{about_this}'
+    assert resp_body[bad_feeling_traps_path]['path'] == '/api/bad_feeling/traps'
+    assert resp_body[mouse_droid_wildcard_path]['path'] == '/api/mouse_droid/{id}:discover'
+    assert resp_body[mouse_droid_favorite_path]['path'] == '/api/mouse_droid/favorite:discover'
+
+    assert not resp_body[wookies_non_existent_path]
+    assert not resp_body[bad_feeling_non_existent_path]
+    assert not resp_body[clones_non_existent_path]
 
 
 def test_add_new_service_existing_route(client):

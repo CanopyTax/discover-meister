@@ -12,7 +12,7 @@ async def get_endpoints(service_name=None, internal_data=False):
     results = await pg.fetch(query)
     endpoints = []
     for row in results:
-        endpoint = clean_endpoint(row, internal_data=internal_data)
+        endpoint = _clean_endpoint(row, internal_data=internal_data)
         endpoints.append(endpoint)
 
     return endpoints
@@ -50,10 +50,10 @@ async def update_endpoint(path, service_name,
         .where(db.endpoints.c.path == path).returning(text('*'))
 
     ep = await pg.fetchrow(update)
-    return clean_endpoint(ep)
+    return _clean_endpoint(ep)
 
 
-def clean_endpoint(endpoint, internal_data=True):
+def _clean_endpoint(endpoint, internal_data=True):
     ep = {'id': endpoint['id'],
           'path': endpoint['path'],
           'service': endpoint['service'],
