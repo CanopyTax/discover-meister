@@ -20,4 +20,4 @@ services:
     links:
       - postgres
     ports:
-      - 8445:8445
+      - 8080:8080
