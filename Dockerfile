@@ -19,7 +19,6 @@ RUN export PYCURL_SSL_LIBRARY=openssl && \
 
 
 # build frontend
-<<<<<<< Updated upstream
 COPY dmeister/static /app/dmeister/static
 RUN apk --no-cache add nodejs npm git && \
     npm install -g yarn && \
