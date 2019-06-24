@@ -5,6 +5,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 **/__pycache__/
+dmeister/public/build
 
 # C extensions
 *.so
