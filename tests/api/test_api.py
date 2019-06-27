@@ -1,5 +1,8 @@
 import asyncio
+import re
+import urllib.parse
 
+import pytest
 from pytest import fixture
 from starlette.testclient import TestClient
 
@@ -29,20 +32,23 @@ def test_get_services_smoke(client):
     assert response.status_code == 200
 
 
+_endpoints = [{'path': '/api/highground', 'methods': ['post', 'get']},
+              {'path': '/api/the_force', 'methods': ['post', 'get']},
+              {'path': '/api/wookies/{name}/bandoliers', 'methods': ['post', 'get']},
+              {'path': '/api/clones/{id}/blasters/{id}', 'methods': ['post', 'get']},
+              {'path': '/api/bad_feeling/{about_this}', 'methods': ['post', 'get']},
+              {'path': '/api/bad_feeling/traps', 'methods': ['post', 'get']},
+              {'path': '/api/mouse_droid/{id}:discover', 'methods': ['post', 'get']},
+              {'path': '/api/mouse_droid/favorite:discover', 'methods': ['post', 'get']},
+              {'path': '/api/hello_there', 'methods': ['get']}]
+
+
 def test_put_service(client):
     body = {
         'name': 'obi_wan',
         'protocols': {'http': {'host': 'http://obiwan'}},
         'meta': {'master': True, 'squad': 'council'},
-        'endpoints': [{'path': '/api/highground', 'methods': ['post', 'get']},
-                      {'path': '/api/the_force', 'methods': ['post', 'get']},
-                      {'path': '/api/wookies/{name}/bandoliers', 'methods': ['post', 'get']},
-                      {'path': '/api/clones/{id}/blasters/{id}', 'methods': ['post', 'get']},
-                      {'path': '/api/bad_feeling/{about_this}', 'methods': ['post', 'get']},
-                      {'path': '/api/bad_feeling/traps', 'methods': ['post', 'get']},
-                      {'path': '/api/mouse_droid/{id}:discover', 'methods': ['post', 'get']},
-                      {'path': '/api/mouse_droid/favorite:discover', 'methods': ['post', 'get']},
-                      {'path': '/api/hello_there', 'methods': ['get']}]
+        'endpoints': _endpoints
     }
 
     response = client.put('/api/services/obi_wan', json=body)
@@ -144,6 +150,28 @@ def test_search_endpoints(client):
     assert not resp_body[wookies_non_existent_path]
     assert not resp_body[bad_feeling_non_existent_path]
     assert not resp_body[clones_non_existent_path]
+
+
+@pytest.mark.parametrize('search_term, expected',
+                         [('api', [e['path'] for e in _endpoints]),
+                          ('/api/highground', ['/api/highground']),
+                          ('highground', ['/api/highground']),
+                          ('bad_feeling', ['/api/bad_feeling/{about_this}', '/api/bad_feeling/traps']),
+                          ('bad_feeling/traps', ['/api/bad_feeling/traps']),
+                          ('bad_feeling/wildcard', ['/api/bad_feeling/{about_this}']),
+                          ('just_a_wildcard', [e['path'] for e in _endpoints
+                                               if re.compile(r'^.*{[^/{]*}.*$').match(e['path'])])])
+def test_filter_endpoints(client, search_term, expected):
+    response = client.get('/api/endpoints?path=' + urllib.parse.quote(search_term))
+    assert response.status_code == 200
+    body = response.json()
+    assert body
+    assert 'endpoints' in body
+    endpoints = body['endpoints']
+    assert isinstance(endpoints, list)
+    assert len(endpoints) == len(expected)
+    for e in endpoints:
+        assert e['path'] in expected
 
 
 def test_add_new_service_existing_route(client):
