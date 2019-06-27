@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" data-name="Ebene 2" viewBox="0 0 32 40" x="0px" y="0px">
+  <title>starwars_icons</title>
+  <path d="M16,3A13,13,0,1,0,29,16,13,13,0,0,0,16,3Zm0,25A12,12,0,0,1,4.11,17.56a39.58,39.58,0,0,0,12,1.93,36.92,36.92,0,0,0,11.74-1.93A12,12,0,0,1,16,28ZM28,16.48l-1,.32a36.57,36.57,0,0,1-22,0l-1-.31c0-.16,0-.32,0-.48a12,12,0,0,1,24,0C28,16.16,28,16.32,28,16.48Z"/><path d="M22.7,8.15a3.21,3.21,0,0,0-4.83,1.29,4.42,4.42,0,0,0,1.44,5.41,3.39,3.39,0,0,0,1.92.62,3.13,3.13,0,0,0,.8-.1,3.28,3.28,0,0,0,2.11-1.8A4.42,4.42,0,0,0,22.7,8.15Zm.54,5a2.21,2.21,0,0,1-3.37.9,3.43,3.43,0,0,1-1.1-4.15A2.29,2.29,0,0,1,20.23,8.6a2.11,2.11,0,0,1,.54-.07A2.4,2.4,0,0,1,22.13,9a3.43,3.43,0,0,1,1.1,4.15Z"/>
+  <text x="0" y="47" fill="#000000" font-size="5px" font-weight="bold" font-family="'Helvetica Neue', Helvetica, Arial-Unicode, Arial, Sans-serif">Created by Henning Gross</text><text x="0" y="52" fill="#000000" font-size="5px" font-weight="bold" font-family="'Helvetica Neue', Helvetica, Arial-Unicode, Arial, Sans-serif">from the Noun Project</text>
+</svg>

@@ -5,7 +5,7 @@
   import Endpoints from "./Endpoints.svelte";
   import Logo from "./common/Logo.svelte";
 
-  imperialBackground();
+  /* imperialBackground(); */
 
   let activeUrl = window.location.pathname;
 

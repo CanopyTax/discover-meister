@@ -1,39 +1,129 @@
 <script>
-  import Logo from './Logo.svelte';
+  import LoaderIcon from './Loader-icon.svelte'
+
+  let size = 'large'
+
 </script>
 <style>
-  @keyframes spin {
+  .loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0 36px;
+  }
+
+  .loader div{
+    float: left;
+    border-radius: 50%;
+    opacity: 0.2;
+  }
+
+  .loader div:first-child {
+    animation: firstball 1350ms infinite linear;
+  }
+  .loader div:nth-child(2) {
+    animation: secondball 1350ms infinite linear;
+  }
+  .loader div:last-child {
+    animation: thirdball 1350ms infinite linear;
+  }
+
+  @keyframes firstball {
     0% {
-      transform: rotate(0deg);
+      opacity: 0;
+      transform: scale(0.5);
     }
-    25% {
-      transform: rotate(90deg);
+    13% {
+      opacity: 0.9;
+      transform: scale(1.03);
     }
-    50% {
-      transform: rotate(180deg);
+    26% {
+      opacity: 1;
+      transform: scale(0.95);
     }
-    75% {
-      transform: rotate(270deg);
+    33% {
+      transform: scale(1);
+    }
+    34% {
+      opacity: 0.2;
+    }
+  }
+
+  @keyframes secondball {
+    32% {
+      opacity: 0.2;
+      transform: scale(1);
+    }
+    33% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    46% {
+      opacity: 0.9;
+      transform: scale(1.03);
+    }
+    59% {
+      opacity: 1;
+      transform: scale(0.95);
+    }
+    66% {
+      transform: scale(1);
+    }
+    67% {
+      opacity: 0.2;
+    }
+  }
+
+  @keyframes thirdball {
+    67% {
+      opacity: 0.2;
+      transform: scale(1);
+    }
+    68% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    81% {
+      opacity: 0.9;
+      transform: scale(1.03);
+    }
+    94% {
+      opacity: 1;
+      transform: scale(0.95);
     }
     100% {
-      transform: rotate(360deg);
+      transform: scale(1);
     }
   }
-  .spin {
-    animation: spin 2550ms;
-    animation-timing-function: linear;
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    margin-left: 8px;
   }
-  .wrapper {
-    width: 100%;
-    height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+
+  .large-dot {
+    width: 48px;
+    height: 48px;
+    margin-left: 48px;
   }
 </style>
 
-<div class="wrapper">
-  <div class="spin">
-    <Logo />
+<div class="loader">
+  <div
+    class='{size === "small" ? "dot" : "large-dot"}'
+  >
+    <LoaderIcon />
+  </div>
+  <div
+    class='{size === "small" ? "dot" : "large-dot"}'
+  >
+    <LoaderIcon />
+  </div>
+  <div
+    class='{size === "small" ? "dot" : "large-dot"}'
+  >
+    <LoaderIcon />
   </div>
 </div>
