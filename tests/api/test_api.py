@@ -82,6 +82,54 @@ def test_get_services(client):
     assert found
 
 
+def test_get_service_endpoints(client):
+    response = client.get('/api/services/obi_wan/endpoints')
+    assert response.status_code == 200
+    body = response.json()
+    assert 'endpoints' in body
+    endpoints = body['endpoints']
+    assert isinstance(endpoints, list)
+    assert len(endpoints) == len(_endpoints)
+
+
+def test_put_another_service(client):
+    body = {
+        'name': 'han',
+        'protocols': {'http': {'host': 'http://han'}},
+        'meta': {'master': False, 'squad': 'rebels'},
+        'endpoints':  [{'path': '/api/parts', 'methods': ['get']},
+                       {'path': '/api/jobs', 'methods': ['post', 'get']}]
+    }
+    response = client.put('/api/services/han', json=body)
+    assert response.status_code == 200
+    j = response.json()
+    assert 'name' in j
+    assert 'protocols' in j
+    assert 'meta' in j
+    assert 'endpoints' in j
+
+
+def test_get_all_endpoints(client):
+    # endpoints defined on PUT services should now show up
+    response = client.get('/api/endpoints')
+    assert response.status_code == 200
+    body = response.json()
+    endpoints = body.get('endpoints')
+    assert isinstance(endpoints, list)
+    assert len(endpoints) == len(_endpoints) + 2
+
+
+def test_delete_endpoints(client):
+    body = {
+        'name': 'han',
+        'protocols': {'http': {'host': 'http://han'}},
+        'meta': {'master': False, 'squad': 'rebels'},
+        'endpoints':  []
+    }
+    response = client.put('/api/services/han', json=body)
+    assert response.status_code == 200
+
+
 def test_get_endpoints(client):
     # endpoints defined on PUT services should now show up
     response = client.get('/api/endpoints')
@@ -89,6 +137,7 @@ def test_get_endpoints(client):
     body = response.json()
     endpoints = body.get('endpoints')
     assert isinstance(endpoints, list)
+    assert len(endpoints) == len(_endpoints)
     found = False
     for endpoint in endpoints:
         # these things should always be in the body

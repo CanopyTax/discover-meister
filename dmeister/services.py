@@ -42,7 +42,7 @@ async def put_service(request: Request):
     if not protocols:
         return JSONResponse({'message': "'protocols' is a required field"}, status_code=400)
 
-    if not endpoints:
+    if endpoints is None:
         return JSONResponse({'message': "'endpoints' is a required field"}, status_code=400)
 
     endpoints_dictionary = {}
@@ -55,10 +55,6 @@ async def put_service(request: Request):
         existing_endpoints_dict[endpoint['path']] = endpoint
 
     service_existing_endpoints = await endpointda.get_endpoints(service_name=service_name, internal_data=True)
-    service_existing_ep_dict = {}
-    for endpoint in service_existing_endpoints:
-        service_existing_ep_dict[endpoint['path']] = endpoint
-
     for ep in service_existing_endpoints:
         if ep['path'] not in endpoints_dictionary:
             if ep['new_service']:

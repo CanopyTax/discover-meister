@@ -71,7 +71,7 @@ async def search_endpoints(request: Request):
     if not paths:
         return JSONResponse({'message': "'paths' is a required field"}, status_code=400)
 
-    results = await endpointda.get_endpoints(paths)
+    results = await endpointda.get_endpoints()
 
     path_pattern_dict = {}
     for row in results:

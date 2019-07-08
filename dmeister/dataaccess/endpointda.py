@@ -7,7 +7,7 @@ from . import db
 async def get_endpoints(service_name=None, internal_data=False):
     query = db.endpoints.select()
     if service_name:
-        query.where(db.endpoints.c.service == service_name)
+        query = query.where(db.endpoints.c.service == service_name)
 
     results = await pg.fetch(query)
     endpoints = []
