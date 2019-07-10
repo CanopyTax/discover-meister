@@ -1,64 +1,12 @@
 <script>
   import Loader from "./common/Loader.svelte";
+  import Empty from "./common/Empty.svelte";
 
-  const services = new Promise(resolve =>
-    setTimeout(
-      () =>
-        resolve({
-          services: [
-            {
-              name: "anakin",
-              protocols: { http: { host: "http://anakin.skywalker" } },
-              meta: { master: false, squad: "council" },
-              endpoints: "{host}/services/anakin/endpoints"
-            },
-            {
-              name: "palpatine",
-              protocols: { http: { host: "http://pal.sith" } },
-              meta: { master: false, squad: "sith" },
-              endpoints: "{host}/services/anakin/endpoints"
-            },
-            {
-              name: "vader",
-              protocols: { http: { host: "http://vader.sith" } },
-              meta: { master: false, squad: "sith" },
-              endpoints: "{host}/services/anakin/endpoints"
-            },
-            {
-              name: "yoda",
-              protocols: { http: { host: "http://yoda.jedi" } },
-              meta: { master: false, squad: "council" },
-              endpoints: "{host}/services/anakin/endpoints"
-            },
-            {
-              name: "anakin2",
-              protocols: { http: { host: "http://anakin.skywalker" } },
-              meta: { master: false, squad: "council" },
-              endpoints: "{host}/services/anakin/endpoints"
-            },
-            {
-              name: "palpatine2",
-              protocols: { http: { host: "http://pal.sith" } },
-              meta: { master: false, squad: "sith" },
-              endpoints: "{host}/services/anakin/endpoints"
-            },
-            {
-              name: "vader2",
-              protocols: { http: { host: "http://vader.sith" } },
-              meta: { master: false, squad: "sith" },
-              endpoints: "{host}/services/anakin/endpoints"
-            },
-            {
-              name: "yoda2",
-              protocols: { http: { host: "http://yoda.jedi" } },
-              meta: { master: false, squad: "council" },
-              endpoints: "{host}/services/anakin/endpoints"
-            }
-          ]
-        }),
-      1000
-    )
-  ).then(resp => resp.services);
+  let services = fetch(`/api/services`, {
+    credentials: "same-origin"
+  })
+    .then(resp => resp.json())
+    .then(json => json.services);
 </script>
 
 <style>
@@ -75,7 +23,7 @@
     line-height: 1.4;
     text-transform: uppercase;
     background-color: #393939a3;
-    font-weight:bold;
+    font-weight: bold;
     padding: 18px;
   }
   th,
@@ -105,24 +53,28 @@
   {#await services}
     <Loader />
   {:then services}
-    <table>
-      <thead>
-        <tr>
-          <th>Service name</th>
-          <th>Protocols</th>
-          <th>Squad</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each services as service (service.name)}
+    {#if !services || !services.length}
+      <Empty message="There are no registered services!" />
+    {:else}
+      <table>
+        <thead>
           <tr>
-            <td>{service.name}</td>
-            <td>{Object.keys(service.protocols).join(', ')}</td>
-            <td>{service.meta.squad}</td>
+            <th>Service name</th>
+            <th>Protocols</th>
+            <th>Squad</th>
           </tr>
-        {/each}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {#each services as service}
+            <tr>
+              <td>{service.name}</td>
+              <td>{Object.keys(service.protocols).join(', ')}</td>
+              <td>{service.meta.squad}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    {/if}
   {:catch error}
     <p>Error retrieving services: {error.message}</p>
   {/await}

@@ -4,7 +4,6 @@ services:
     image: postgres:11-alpine
     ports:
       - 5432:5432
-      -
   dmeister:
     image: canopytax/dmeister
     volumes:
