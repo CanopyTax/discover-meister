@@ -11,6 +11,7 @@
     align-items: center;
     width: 100%;
     padding: 0 36px;
+    margin-top: 60px;
   }
 
   .loader div{

@@ -1,13 +1,39 @@
 <script>
   import { imperialBackground } from "imperial-style";
   import { Router, Link, Route } from "svelte-routing";
+  import Loader from "./common/Loader.svelte";
   import Services from "./Services.svelte";
   import Endpoints from "./Endpoints.svelte";
+  import EndpointTable from "./EndpointTable.svelte";
   import Logo from "./common/Logo.svelte";
 
   /* imperialBackground(); */
 
   let activeUrl = window.location.pathname;
+  let searchString = "";
+  let searchResults = null;
+  let timeout;
+
+  $: if (searchString && searchString.length) {
+    clearInterval(timeout);
+    timeout = setTimeout(fetchSearchResults, 500);
+  }
+
+  $: if (!searchString) {
+    clearInterval(timeout);
+    searchResults = null;
+  }
+
+  function fetchSearchResults() {
+    searchResults = fetch(
+      `/api/endpoints?path=${encodeURIComponent(searchString)}`,
+      {
+        credentials: "same-origin"
+      }
+    )
+      .then(resp => resp.json())
+      .then(json => json.endpoints);
+  }
 
   export let url = "";
 </script>
@@ -85,19 +111,47 @@
     color: red;
     font-size: 26px;
   }
+
+  .search {
+    margin: 0 0 0 24px;
+    width: calc(100% - 330px);
+    max-width: 800px;
+    background: transparent;
+    color: white;
+  }
+
+  .inactive {
+    display: none;
+  }
+  .search-results {
+    display: none;
+  }
+  .search-results.activate {
+    display: block;
+  }
 </style>
 
 <Router {url}>
   <div class="grid-container">
     <div class="bar" />
     <div class="nav-menu">
-      <div class="link-wrapper" on:click="{() => activeUrl = '/'}">
+      <div
+        class="link-wrapper"
+        on:click={() => {
+          searchString = '';
+          activeUrl = '/';
+        }}>
         {#if activeUrl === '/'}
           <span class="active">/</span>
         {/if}
         <Link to="/">Services</Link>
       </div>
-      <div class="link-wrapper" on:click="{() => activeUrl = '/endpoints'}">
+      <div
+        class="link-wrapper"
+        on:click={() => {
+          searchString = '';
+          activeUrl = '/endpoints';
+        }}>
         {#if activeUrl === '/endpoints'}
           <span class="active">/</span>
         {/if}
@@ -105,16 +159,36 @@
       </div>
     </div>
     <div class="content">
-      <Route path="/">
-        <Services />
-      </Route>
-      <Route path="endpoints">
-        <Endpoints />
-      </Route>
+      <div class="search-results" class:activate={searchString}>
+        {#if searchResults}
+          {#await searchResults}
+            <Loader />
+          {:then results}
+            <EndpointTable
+              emptyMessage="There are no search results found"
+              endpoints={results} />
+          {:catch error}
+            <p>Error searching services: {error.message}</p>
+          {/await}
+        {/if}
+      </div>
+      <div class:inactive={searchString}>
+        <Route path="/">
+          <Services />
+        </Route>
+        <Route path="endpoints">
+          <Endpoints />
+        </Route>
+      </div>
     </div>
     <div class="primary-navbar">
       <Logo />
       <h1>Discover Meister</h1>
+      <input
+        bind:value={searchString}
+        class="search"
+        type="text"
+        placeholder="Search by endpoint" />
     </div>
   </div>
 </Router>
