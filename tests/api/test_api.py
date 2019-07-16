@@ -36,8 +36,10 @@ _endpoints = [{'path': '/api/highground', 'methods': ['post', 'get']},
               {'path': '/api/the_force', 'methods': ['post', 'get']},
               {'path': '/api/wookies/{name}/bandoliers', 'methods': ['post', 'get']},
               {'path': '/api/clones/{id}/blasters/{id}', 'methods': ['post', 'get']},
+              {'path': '/api/bad_feeling', 'methods': ['post', 'get']},
               {'path': '/api/bad_feeling/{about_this}', 'methods': ['post', 'get']},
               {'path': '/api/bad_feeling/traps', 'methods': ['post', 'get']},
+              {'path': '/api/bad_feeling/{}/traps/{}', 'methods': ['post', 'get']},
               {'path': '/api/mouse_droid/{id}:discover', 'methods': ['post', 'get']},
               {'path': '/api/mouse_droid/favorite:discover', 'methods': ['post', 'get']},
               {'path': '/api/hello_there', 'methods': ['get']}]
@@ -97,8 +99,8 @@ def test_put_another_service(client):
         'name': 'han',
         'protocols': {'http': {'host': 'http://han'}},
         'meta': {'master': False, 'squad': 'rebels'},
-        'endpoints':  [{'path': '/api/parts', 'methods': ['get']},
-                       {'path': '/api/jobs', 'methods': ['post', 'get']}]
+        'endpoints': [{'path': '/api/parts', 'methods': ['get']},
+                      {'path': '/api/jobs', 'methods': ['post', 'get']}]
     }
     response = client.put('/api/services/han', json=body)
     assert response.status_code == 200
@@ -124,7 +126,7 @@ def test_delete_endpoints(client):
         'name': 'han',
         'protocols': {'http': {'host': 'http://han'}},
         'meta': {'master': False, 'squad': 'rebels'},
-        'endpoints':  []
+        'endpoints': []
     }
     response = client.put('/api/services/han', json=body)
     assert response.status_code == 200
@@ -185,7 +187,8 @@ def test_search_endpoints(client):
     response = client.post('/api/endpoints:search', json=body)
     assert response.status_code == 200
     resp_body = response.json()
-
+    print(resp_body)
+    # assert resp_body == {}
     for path in body['paths']:
         assert path in resp_body
 
@@ -205,11 +208,13 @@ def test_search_endpoints(client):
                          [('api', [e['path'] for e in _endpoints]),
                           ('/api/highground', ['/api/highground']),
                           ('highground', ['/api/highground']),
-                          ('bad_feeling', ['/api/bad_feeling/{about_this}', '/api/bad_feeling/traps']),
+                          ('/api/bad_feeling', ['/api/bad_feeling', '/api/bad_feeling/{about_this}',
+                                                '/api/bad_feeling/traps', '/api/bad_feeling/{}/traps/{}']),
                           ('bad_feeling/traps', ['/api/bad_feeling/traps']),
-                          ('bad_feeling/wildcard', ['/api/bad_feeling/{about_this}']),
-                          ('just_a_wildcard', [e['path'] for e in _endpoints
-                                               if re.compile(r'^.*{[^/{]*}.*$').match(e['path'])])])
+                          ('bad_feeling/wildcard', ['/api/bad_feeling/{about_this}', '/api/bad_feeling/{}/traps/{}']),
+                          ('just_a_wildcard', []),
+                          ('/just_a_wildcard', []),
+                          ('just_a_wildcard/', [])])
 def test_filter_endpoints(client, search_term, expected):
     response = client.get('/api/endpoints?path=' + urllib.parse.quote(search_term))
     assert response.status_code == 200

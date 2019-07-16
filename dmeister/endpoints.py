@@ -76,7 +76,7 @@ async def search_endpoints(request: Request):
     path_pattern_dict = {}
     for row in results:
         path = row['path']
-        path_pattern_dict[path] = re.compile(_replace_wildcards_with_regex(path))
+        path_pattern_dict[path] = re.compile(f'^{_replace_wildcards_with_regex(path)}$')
 
     possible_endpoints_dict = {}
     for path in paths:
@@ -113,15 +113,17 @@ def _replacement_func(obj):
     if match.endswith(('/', ':', '.')):
         return f'([^/:.]*){match[-1]}'
     else:
-        return '([^/:.]*$)'
+        return '([^/:.]*)'
 
 
 def _filter_endpoints(search_term, endpoints):
+    if search_term[0] == '/':
+        search_term = search_term[1:]
     len_parts = len(search_term.split('/'))
     results = []
     # Will attempt to first find endpoints that contain the search term exactly
     next_generators = [[search_term]]
-    for n in range(-1, len_parts):
+    for n in range(-1, len_parts - 1):
         """
         In each iteration n thereafter, a set is generated containing regular expressions that will match paths
         containing any of the possible combinations of the search term split by '/' and n parts replaced by
@@ -130,7 +132,6 @@ def _filter_endpoints(search_term, endpoints):
         previous set.
         """
         check_patterns, next_generators = _get_next_search_iteration(n, search_term, len_parts, next_generators)
-
         for e in endpoints:
             to_match = e['path']
             match = False
@@ -144,9 +145,9 @@ def _filter_endpoints(search_term, endpoints):
         matches. If any are found the loop is broken and the results are returned.
         """
         if len(results) > 0:
-            return results
+            break
 
-    return results
+    return sorted(results, key=lambda e: _sort_by_path_hierarchy(e, search_term))
 
 
 def _get_next_search_iteration(iteration, search_term, num_search_parts, generators):
@@ -182,7 +183,8 @@ def _rep_n(s, n, spl='/'):
     parts = s.split(spl)
     result = ''
     for x in range(len(parts)):
-        if x == n:
+        # only match paths where the first part matches so dont replace first part with regex
+        if x == n and not x == 0:
             result += '***'
         else:
             result += parts[x]
@@ -190,3 +192,9 @@ def _rep_n(s, n, spl='/'):
             result += '/'
 
     return result
+
+
+def _sort_by_path_hierarchy(endpoint, search_term):
+    path = endpoint['path']
+    index = path.find(search_term)
+    return path.count('/', 0, index)
