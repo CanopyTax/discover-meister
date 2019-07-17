@@ -1,5 +1,4 @@
 import asyncio
-import re
 import urllib.parse
 
 import pytest
@@ -168,7 +167,6 @@ def test_search_endpoints(client):
     clones_non_existent_path = '/api/clones/ABC123'
     bad_feeling_wildcard_path = '/api/bad_feeling/its_a-trap'
     bad_feeling_traps_path = '/api/bad_feeling/traps'
-    bad_feeling_non_existent_path = '/api/bad_feeling/its.a-trap'
     mouse_droid_wildcard_path = '/api/mouse_droid/123ABC:discover'
     mouse_droid_favorite_path = '/api/mouse_droid/favorite:discover'
 
@@ -179,7 +177,6 @@ def test_search_endpoints(client):
         clones_non_existent_path,
         bad_feeling_wildcard_path,
         bad_feeling_traps_path,
-        bad_feeling_non_existent_path,
         mouse_droid_wildcard_path,
         mouse_droid_favorite_path
     ]}
@@ -187,8 +184,6 @@ def test_search_endpoints(client):
     response = client.post('/api/endpoints:search', json=body)
     assert response.status_code == 200
     resp_body = response.json()
-    print(resp_body)
-    # assert resp_body == {}
     for path in body['paths']:
         assert path in resp_body
 
@@ -200,7 +195,6 @@ def test_search_endpoints(client):
     assert resp_body[mouse_droid_favorite_path]['path'] == '/api/mouse_droid/favorite:discover'
 
     assert not resp_body[wookies_non_existent_path]
-    assert not resp_body[bad_feeling_non_existent_path]
     assert not resp_body[clones_non_existent_path]
 
 

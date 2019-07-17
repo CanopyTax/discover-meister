@@ -73,32 +73,12 @@ async def search_endpoints(request: Request):
 
     results = await endpointda.get_endpoints()
 
-    path_pattern_dict = {}
-    for row in results:
-        path = row['path']
-        path_pattern_dict[path] = re.compile(f'^{_replace_wildcards_with_regex(path)}$')
-
-    possible_endpoints_dict = {}
-    for path in paths:
-        possible_endpoints_dict[path] = []
-
-    for row in results:
-        for path in paths:
-            matches = path_pattern_dict[row['path']].match(path)
-            if matches:
-                possible_endpoints_dict[path].append(row)
+    tree = _create_tree(results)
+    dictionary = _create_dictionary(results)
 
     path_to_endpoints_dict = {}
-    for path in paths:
-        endpoint = None
-        possible_endpoints = possible_endpoints_dict[path]
-        if len(possible_endpoints) == 1:
-            endpoint = possible_endpoints[0]
-        elif len(possible_endpoints) > 1:
-            for e in possible_endpoints:
-                if path == e['path']:
-                    endpoint = e
-        path_to_endpoints_dict[path] = endpoint
+    for p in paths:
+        path_to_endpoints_dict[p] = _resolve_path(p, tree, dictionary)
 
     return JSONResponse(path_to_endpoints_dict)
 
@@ -198,3 +178,41 @@ def _sort_by_path_hierarchy(endpoint, search_term):
     path = endpoint['path']
     index = path.find(search_term)
     return path.count('/', 0, index)
+
+
+def _create_tree(endpoints):
+    tree = {}
+    for e in endpoints:
+        path = e['path'].strip('/')
+        sub = tree
+        for portion in path.split('/'):
+            portion = re.sub(re.compile(r'{.*?}'), '{}', portion)
+            if sub.get(portion, None) is None:
+                sub[portion] = {}
+            sub = sub[portion]
+    return tree
+
+
+def _create_dictionary(endpoints):
+    dictionary = {}
+    for e in endpoints:
+        path = re.sub(re.compile(r'{.*?}'), '{}', e['path'])
+        dictionary[path] = e
+    return dictionary
+
+
+def _resolve_path(path, tree, endpoint_dictionary):
+    lookup_path = ''
+    sub = tree
+    path = path.strip('/')
+    for part in path.split('/'):
+        portion = part
+        if sub.get(part, None) is None:
+            portion = '{}'
+            if ':' in part:
+                portion += ':' + part.split(':')[1]
+        if sub.get(portion, None) is None:
+            return None
+        lookup_path += '/' + portion
+        sub = sub[portion]
+    return endpoint_dictionary.get(lookup_path, None)
