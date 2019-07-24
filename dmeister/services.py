@@ -1,6 +1,7 @@
 from starlette.responses import JSONResponse
 from starlette.requests import Request
 
+from dmeister.validation import validate_put_service_request
 from .dataaccess import serviceda, endpointda
 
 
@@ -27,23 +28,17 @@ async def get_service(request: Request):
 
 
 async def put_service(request: Request):
+    body = await request.json()
+    validate_put_service_request(request, body)
+
     host = request.url.scheme + '://' + request.url.hostname
     if request.url.port:
         host += str(request.url.port)
-    body = await request.json()
+
     service_name = request.path_params.get('name')
     protocols = body.get('protocols')
     endpoints = body.get('endpoints')
     meta = body.get('meta')
-
-    if not service_name:
-        return JSONResponse({'message': "'name' is a required field"}, status_code=400)
-
-    if not protocols:
-        return JSONResponse({'message': "'protocols' is a required field"}, status_code=400)
-
-    if endpoints is None:
-        return JSONResponse({'message': "'endpoints' is a required field"}, status_code=400)
 
     endpoints_dictionary = {}
     for endpoint in endpoints:

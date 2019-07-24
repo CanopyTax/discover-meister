@@ -4,6 +4,7 @@ import urllib.parse
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from dmeister.validation import validate_patch_endpoints_request
 from .dataaccess import endpointda
 
 
@@ -30,11 +31,12 @@ async def get_endpoints_for_service(request: Request):
 
 
 async def patch_endpoints_for_service(request: Request):
-    service_name = request.path_params.get('name')
     body = await request.json()
+    validate_patch_endpoints_request(request, body)
+
+    service_name = request.path_params.get('name')
     endpoints = body.get('endpoints')
-    if not endpoints:
-        return JSONResponse({'message': "'endpoints' is a required field"})
+
     existing_endpoints = await endpointda.get_endpoints(internal_data=True)
     endpoints_dictionary = {}
     for endpoint in existing_endpoints:

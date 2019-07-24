@@ -1,6 +1,7 @@
 from asyncpgsa import pg
 from sqlalchemy import text
 
+from dmeister.validation import allowed_methods
 from . import db
 
 
@@ -12,13 +13,15 @@ async def get_endpoints(service_name=None, internal_data=False):
     results = await pg.fetch(query)
     endpoints = []
     for row in results:
-        endpoint = _clean_endpoint(row, internal_data=internal_data)
+        endpoint = _transform_endpoint(row, internal_data=internal_data)
         endpoints.append(endpoint)
 
     return endpoints
 
 
 async def add_endpoint(path, methods, service_name):
+    if methods:
+        methods = _clean_methods(methods)
     insert = db.endpoints.insert().values(path=path,
                                           methods=methods,
                                           service=service_name,
@@ -34,6 +37,9 @@ async def delete_endpoint(path):
 
 async def update_endpoint(path, service_name,
                           methods=None, locked=None, deprecated=None, new_service=None, toggle=None):
+    if methods:
+        methods = _clean_methods(methods)
+
     values = {'path': path, 'service': service_name}
     if methods:
         values['methods'] = methods
@@ -50,10 +56,10 @@ async def update_endpoint(path, service_name,
         .where(db.endpoints.c.path == path).returning(text('*'))
 
     ep = await pg.fetchrow(update)
-    return _clean_endpoint(ep)
+    return _transform_endpoint(ep)
 
 
-def _clean_endpoint(endpoint, internal_data=True):
+def _transform_endpoint(endpoint, internal_data=True):
     ep = {'id': endpoint['id'],
           'path': endpoint['path'],
           'service': endpoint['service'],
@@ -64,3 +70,13 @@ def _clean_endpoint(endpoint, internal_data=True):
         ep['new_service'] = endpoint['new_service']
         ep['toggle'] = endpoint['toggle']
     return ep
+
+
+def _clean_methods(methods):
+    cleaned_methods = set()
+    for m in methods:
+        m = m.lower()
+        if m in allowed_methods:
+            cleaned_methods.add(m)
+
+    return list(cleaned_methods)

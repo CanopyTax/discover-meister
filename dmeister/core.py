@@ -98,6 +98,10 @@ def init():
         else:
             return await index_html(request)
 
+    @app.exception_handler(400)
+    async def handle_malformed_request(request, exc):
+        return JSONResponse({'message': exc.detail}, status_code=400)
+
     return app
 
 

@@ -31,7 +31,11 @@ def test_get_services_smoke(client):
     assert response.status_code == 200
 
 
-_endpoints = [{'path': '/api/highground', 'methods': ['post', 'get']},
+_allowed_methods = ["post", "get", "put", "patch", "delete", "head", "options"]
+
+_test_methods = [method for method in _allowed_methods]
+
+_endpoints = [{'path': '/api/highground', 'methods': _test_methods},
               {'path': '/api/the_force', 'methods': ['post', 'get']},
               {'path': '/api/wookies/{name}/bandoliers', 'methods': ['post', 'get']},
               {'path': '/api/clones/{id}/blasters/{id}', 'methods': ['post', 'get']},
@@ -118,6 +122,11 @@ def test_get_all_endpoints(client):
     endpoints = body.get('endpoints')
     assert isinstance(endpoints, list)
     assert len(endpoints) == len(_endpoints) + 2
+    for e in endpoints:
+        for method in e['methods']:
+            assert method in _allowed_methods
+        if e['path'] == '/api/highground':
+            assert len(e['methods']) == len(_allowed_methods)
 
 
 def test_delete_endpoints(client):
@@ -300,3 +309,29 @@ def test_complete_route_takeover(client):
         if endpoint['path'] == '/api/highground':
             assert endpoint['service'] == 'anakin'
             assert not endpoint.get('new_service')
+
+
+@pytest.mark.parametrize('body',
+                         # must include endpoints
+                         [{'protocols': []},
+                          # must include protocols
+                          {'endpoints': []},
+                          # each endpoint must include methods
+                          {'protocols': [], 'endpoints': [{'path': 'test-path'}]},
+                          # methods should be valid
+                          {'protocols': [], 'endpoints': [{'path': 'test-path', 'methods': ['not_a_method']}]}])
+def test_put_service_validation(client, body):
+    response = client.put('/api/services/test-service', json=body)
+    assert response.status_code == 400
+    assert response.json().get('message') is not None
+
+
+@pytest.mark.parametrize('body',
+                         # must include 'endpoints'
+                         [{},
+                          # each endpoint must include 'path'
+                          {'endpoints': [{'deprecated': True}]}])
+def test_patch_endpoints_validation(client, body):
+    response = client.put('/api/services/test-service', json=body)
+    assert response.status_code == 400
+    assert response.json().get('message') is not None
