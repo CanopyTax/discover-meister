@@ -1,6 +1,7 @@
 <script>
   import Loader from "./common/Loader.svelte";
   import Empty from "./common/Empty.svelte";
+  import Droid from './common/icons/droid.svelte';
 
   let services = fetch(`/api/services`, {
     credentials: "same-origin"
@@ -47,6 +48,20 @@
     cursor: pointer;
     background-color: #222222f8;
   }
+
+  .actions {
+    opacity: 0;
+    transition: 100ms linear opacity;
+  }
+
+  .actions a {
+    margin: 0;
+    position: relative;
+  }
+
+  tr:hover .actions {
+    opacity: 1;
+  }
 </style>
 
 <div>
@@ -62,6 +77,7 @@
             <th>Service name</th>
             <th>Protocols</th>
             <th>Squad</th>
+            <th />
           </tr>
         </thead>
         <tbody>
@@ -70,6 +86,13 @@
               <td>{service.name}</td>
               <td>{Object.keys(service.protocols).join(', ')}</td>
               <td>{service.meta.squad}</td>
+              <td>
+                {#if service.meta.api_documentation}
+                  <div class="actions">
+                    <a href="{service.meta.api_documentation}" title="Documentation"><Droid /></a>
+                  </div>
+                {/if}
+              </td>
             </tr>
           {/each}
         </tbody>
