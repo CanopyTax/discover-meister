@@ -32,6 +32,7 @@ POSTGRES_MIN_POOL_SIZE = int(os.getenv('DATABASE_MIN_POOL_SIZE', '2'))
 POSTGRES_MAX_POOL_SIZE = int(os.getenv('DATABASE_MAX_POOL_SIZE', '4'))
 SENTRY_URL = os.getenv('SENTRY_URL')
 ENV_NAME = os.getenv('ENV_LOCATION', 'local')
+PORT = int(os.getenv('HTTP_PORT', '8080'))
 
 
 if (not LOCAL_DEV) and None in (GOOGLE_ID, GOOGLE_SECRET, GOOGLE_ORG):
@@ -116,7 +117,7 @@ def main(app=None):
     else:
         kwargs['workers'] = 2
 
-    uvicorn.run(app, host='0.0.0.0', http='h11', port=8080, headers=[('Server', 'dmeister')],
+    uvicorn.run(app, host='0.0.0.0', http='h11', port=PORT, headers=[('Server', 'dmeister')],
                 proxy_headers=True, **kwargs)
 
 
