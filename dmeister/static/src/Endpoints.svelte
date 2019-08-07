@@ -7,14 +7,23 @@
   })
     .then(resp => resp.json())
     .then(json => json.endpoints);
+
+
+  let services = fetch(`/api/services`, {
+    credentials: "same-origin"
+  })
+    .then(resp => resp.json())
+    .then(json => json.services);
+
+  let both = Promise.all([endpoints, services])
 </script>
 
 <div>
-  {#await endpoints}
+  {#await both}
     <Loader />
-  {:then endpoints}
-    <EndpointTable {endpoints} />
+  {:then response}
+    <EndpointTable endpoints={response[0]} services={response[1]} />
   {:catch error}
-    <p>Error retrieving services: {error.message}</p>
+    <p>Error retrieving endpoints/services: {error.message}</p>
   {/await}
 </div>

@@ -7,7 +7,7 @@
   import EndpointTable from "./EndpointTable.svelte";
   import Logo from "./common/Logo.svelte";
 
-  /* imperialBackground(); */
+  imperialBackground({animate: false});
 
   let activeUrl = window.location.pathname;
   let searchString = "";

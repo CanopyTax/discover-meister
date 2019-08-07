@@ -1,7 +1,16 @@
 <script>
   import Empty from "./common/Empty.svelte";
+  import Droid from './common/icons/droid.svelte';
   export let endpoints = [];
+  export let services = [];
   export let emptyMessage = "There are no endpoints registered!";
+  const serviceDocs = services.reduce((acc, service) => {
+    if (service.meta && service.meta.api_documentation) {
+      acc[service.name] = service.meta.api_documentation
+    }
+    return acc
+  }, {})
+
 </script>
 
 <style>
@@ -42,6 +51,20 @@
     cursor: pointer;
     background-color: #222222f8;
   }
+
+  .actions {
+    opacity: 0;
+    transition: 100ms linear opacity;
+  }
+
+  .actions a {
+    margin: 0;
+    position: relative;
+  }
+
+  tr:hover .actions {
+    opacity: 1;
+  }
 </style>
 
 {#if !endpoints || !endpoints.length}
@@ -54,6 +77,7 @@
         <th>Path</th>
         <th>Methods</th>
         <th>Deprecated</th>
+        <th />
       </tr>
     </thead>
     <tbody>
@@ -68,6 +92,13 @@
           </td>
           <td>{endpoint.methods.join(', ')}</td>
           <td>{endpoint.deprecated}</td>
+          <td>
+            {#if serviceDocs[endpoint.service]}
+              <div class="actions">
+                <a href="{serviceDocs[endpoint.service]}" title="Documentation"><Droid /></a>
+              </div>
+            {/if}
+          </td>
         </tr>
       {/each}
     </tbody>
