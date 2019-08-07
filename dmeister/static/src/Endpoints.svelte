@@ -24,6 +24,6 @@
   {:then response}
     <EndpointTable endpoints={response[0]} services={response[1]} />
   {:catch error}
-    <p>Error retrieving services: {error.message}</p>
+    <p>Error retrieving endpoints/services: {error.message}</p>
   {/await}
 </div>
