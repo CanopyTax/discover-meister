@@ -4,7 +4,7 @@
     width: auto;
     font-size: 17.5rem;
     display: block;
-    stroke: #fff;
+    stroke: var(--white);
     stroke-width: 32px;
   }
 </style>
