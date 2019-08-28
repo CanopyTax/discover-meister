@@ -3,11 +3,8 @@
   import Empty from "./common/Empty.svelte";
   import Droid from './common/icons/droid.svelte';
 
-  let services = fetch(`/api/services`, {
-    credentials: "same-origin"
-  })
-    .then(resp => resp.json())
-    .then(json => json.services);
+  export let services = []
+
 </script>
 
 <style>

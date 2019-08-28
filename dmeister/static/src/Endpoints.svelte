@@ -1,6 +1,7 @@
 <script>
   import Loader from "./common/Loader.svelte";
   import EndpointTable from "./EndpointTable.svelte";
+  export let services = []
 
   let endpoints = fetch(`/api/endpoints`, {
     credentials: "same-origin"
@@ -8,21 +9,13 @@
     .then(resp => resp.json())
     .then(json => json.endpoints);
 
-
-  let services = fetch(`/api/services`, {
-    credentials: "same-origin"
-  })
-    .then(resp => resp.json())
-    .then(json => json.services);
-
-  let both = Promise.all([endpoints, services])
 </script>
 
 <div>
-  {#await both}
+  {#await endpoints}
     <Loader />
   {:then response}
-    <EndpointTable endpoints={response[0]} services={response[1]} />
+    <EndpointTable endpoints={response} services={services} />
   {:catch error}
     <p>Error retrieving endpoints/services: {error.message}</p>
   {/await}
