@@ -14,6 +14,12 @@
   let searchResults = null;
   let timeout;
 
+  let services = fetch(`/api/services`, {
+    credentials: "same-origin"
+  })
+    .then(resp => resp.json())
+    .then(json => json.services);
+
   $: if (searchString && searchString.length) {
     clearInterval(timeout);
     timeout = setTimeout(fetchSearchResults, 500);
@@ -164,9 +170,14 @@
           {#await searchResults}
             <Loader />
           {:then results}
-            <EndpointTable
-              emptyMessage="There are no search results found"
-              endpoints={results} />
+            {#await services}
+              <Loader />
+            {:then serviceResults}
+              <EndpointTable
+                services={serviceResults}
+                emptyMessage="There are no search results found"
+                endpoints={results} />
+            {/await}
           {:catch error}
             <p>Error searching services: {error.message}</p>
           {/await}
@@ -174,10 +185,18 @@
       </div>
       <div class:inactive={searchString}>
         <Route path="/">
-          <Services />
+          {#await services}
+            <Loader />
+          {:then results}
+            <Services services={results}/>
+          {/await}
         </Route>
         <Route path="endpoints">
-          <Endpoints />
+          {#await services}
+            <Loader />
+          {:then results}
+            <Endpoints services={results} />
+          {/await}
         </Route>
       </div>
     </div>
