@@ -1095,10 +1095,10 @@ ignore-walk@^3.0.1:
   dependencies:
     minimatch "^3.0.4"
 
-imperial-style@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/imperial-style/-/imperial-style-0.1.0.tgz#59b3203201aef3f743ccc7d8eddc6835ceb34206"
-  integrity sha512-ONkC2Hl9ORKe4Cw9dIQwZYYUGsj2QQWHhDwjAP/8zCNUDpVXs4TRLJOVs3CBPIfRpa1sBZt+RSC5r7gfVvlrEQ==
+imperial-style@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/imperial-style/-/imperial-style-0.2.0.tgz#170052dffcf278ae36aba4c9a3b5233b3d4f73ff"
+  integrity sha512-sMcubJqWFIkGWQFFvDXHp6ZbX9JYnT9IvvMLAhzoRNChTiKnlmz/s8Un3e6lNgLXgygxDGlWp8SLuTx++R+/KQ==
 
 import-cwd@^2.0.0, import-cwd@^2.1.0:
   version "2.1.0"
