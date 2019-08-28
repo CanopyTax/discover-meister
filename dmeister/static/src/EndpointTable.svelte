@@ -21,8 +21,8 @@
   }
   th {
     font-size: 15px;
-    color: white;
-    text-shadow: 0 0 0.625em white, 0 0 1.5625em white,
+    color: var(--white);
+    text-shadow: 0 0 0.625em var(--white), 0 0 1.5625em var(--white),
       -0.0625em 0 0.125em rgba(0, 0, 0, 0.5);
     line-height: 1.4;
     text-transform: uppercase;

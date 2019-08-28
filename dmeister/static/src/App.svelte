@@ -46,7 +46,7 @@
 
 <style>
   h1 {
-    color: white;
+    color: var(--white);
   }
   .app-header {
     display: flex;
@@ -67,7 +67,7 @@
 
   .bar {
     grid-area: bar;
-    background: white;
+    background: var(--white);
     box-shadow: rgb(255, 255, 255) 0px 0px 0.625em,
       rgb(255, 255, 255) 0px 0px 1.5625em,
       rgba(0, 0, 0, 0.5) -0.0625em 0px 0.125em;
@@ -80,7 +80,7 @@
   :global(a) {
     text-transform: uppercase;
     color: white;
-    text-shadow: 0 0 0.625em #bc1e22, 0 0 1.5625em #bc1e22,
+    text-shadow: 0 0 0.625em #bc1e22, 0 0 1.5625em var(--red),
       -0.0625em 0 0.125em rgba(0, 0, 0, 0.5);
     font-size: 1.5rem;
     display: block;
@@ -88,12 +88,12 @@
   }
 
   :global(a:visited) {
-    color: white;
+    color: var(--white);
   }
 
   .content {
     grid-area: content;
-    color: white;
+    color: var(--white);
     padding: 24px;
   }
 
@@ -113,8 +113,8 @@
     position: absolute;
     font-weight: bold;
     left: -15px;
-    top: -2px;
-    color: red;
+    top: -6px;
+    color: var(--red);
     font-size: 26px;
   }
 
@@ -123,7 +123,7 @@
     width: calc(100% - 330px);
     max-width: 800px;
     background: transparent;
-    color: white;
+    color: var(--white);
   }
 
   .inactive {
