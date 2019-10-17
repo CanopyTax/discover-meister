@@ -83,10 +83,13 @@ def init():
     app.add_route('/api/services', services.get_services, methods=['GET'])
     app.add_route('/api/services/{name}', services.get_service, methods=['GET'])
     app.add_route('/api/services/{name}', services.put_service, methods=['PUT'])
+    app.add_route('/api/services/{name}', services.delete_service, methods=['DELETE'])
     app.add_route('/api/endpoints', endpoints.get_all_endpoints, methods=['GET'])
     app.add_route('/api/endpoints:search', endpoints.search_endpoints, methods=['POST'])
-    app.add_route('/api/services/{name}/endpoints', endpoints.get_endpoints_for_service, methods=['GET'])
-    app.add_route('/api/services/{name}/endpoints', endpoints.patch_endpoints_for_service, methods=['PATCH'])
+    app.add_route('/api/services/{name}/endpoints', endpoints.get_endpoints_for_service,
+                  methods=['GET'])
+    app.add_route('/api/services/{name}/endpoints', endpoints.patch_endpoints_for_service,
+                  methods=['PATCH'])
     app.add_route('/heartbeat', health.get_health)
     app.add_route('/', index_html)
 

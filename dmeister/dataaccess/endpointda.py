@@ -35,6 +35,13 @@ async def delete_endpoint(path):
                       .where(db.endpoints.c.path == path))
 
 
+async def delete_endpoints_for_service(service, connection=None):
+    if not connection:
+        connection = pg
+    await connection.fetchval(db.endpoints.delete()
+                              .where(db.endpoints.c.service == service))
+
+
 async def update_endpoint(path, service_name,
                           methods=None, locked=None, deprecated=None, new_service=None, toggle=None):
     if methods:

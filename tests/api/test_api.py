@@ -335,3 +335,29 @@ def test_patch_endpoints_validation(client, body):
     response = client.put('/api/services/test-service', json=body)
     assert response.status_code == 400
     assert response.json().get('message') is not None
+
+
+def test_delete(client):
+    response = client.delete('/api/services/obi_wan')
+    assert response.status_code == 204
+
+    response = client.get('/api/services')
+    assert response.status_code == 200
+    body = response.json()
+    services = body.get('services')
+    assert isinstance(services, list)
+    found = False
+    for service in services:
+        if service['name'] == 'obi_wan':
+            found = True
+            break
+
+    assert not found
+
+
+def test_cleanup(client):
+    # not really a test, just cleans up everything
+    client.delete('/api/services/luke')
+    client.delete('/api/services/anakin')
+    client.delete('/api/services/han')
+    client.delete('/api/services/chewy')
