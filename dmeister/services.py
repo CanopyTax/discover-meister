@@ -90,6 +90,16 @@ async def put_service(request: Request):
     return JSONResponse(result)
 
 
+async def delete_service(request: Request):
+    service_name = request.path_params.get('name')
+    results = await serviceda.get_services(service_name=service_name)
+    if not results:
+        return JSONResponse({'message': f'Service "{service_name}" not found'}, status_code=404)
+
+    await serviceda.delete_service(service_name=service_name)
+    return JSONResponse(status_code=204)
+
+
 async def _move_endpoint_to_new_service(path, service, methods):
     await endpointda.update_endpoint(path, service,
                                      methods=methods,

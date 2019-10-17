@@ -5,6 +5,7 @@ from sqlalchemy.sql import text
 from sqlalchemy.dialects.postgresql import insert
 
 from . import db
+from . import endpointda
 
 
 async def insert_service(service_name, protocols, meta):
@@ -31,3 +32,11 @@ async def get_services(service_name=None):
     return [{'name': row['name'],
              'protocols': json.loads(row['protocols']),
              'meta': json.loads(row['meta'])} for row in results]
+
+
+async def delete_service(service_name):
+    query = db.services.delete().where(db.services.c.name == service_name)
+
+    async with pg.transaction() as connection:
+        await endpointda.delete_endpoints_for_service(service_name, connection=connection)
+        await connection.fetchval(query)
