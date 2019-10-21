@@ -1,8 +1,13 @@
+from copy import copy
+
+import howard
 from starlette.responses import JSONResponse
 from starlette.requests import Request
 
 from dmeister.validation import validate_put_service_request
 from .dataaccess import serviceda, endpointda
+from . import endpoints as endpoints_
+from .models import Endpoint
 
 
 async def get_services(request: Request):
@@ -42,43 +47,47 @@ async def put_service(request: Request):
 
     endpoints_dictionary = {}
     for endpoint in endpoints:
-        endpoints_dictionary[endpoint['path']] = endpoint
+        ep: Endpoint = howard.from_dict(endpoint, Endpoint)
+        endpoints_dictionary[ep.stripped_path] = ep
 
-    existing_endpoints = await endpointda.get_endpoints(internal_data=True)
-    existing_endpoints_dict = {}
-    for endpoint in existing_endpoints:
-        existing_endpoints_dict[endpoint['path']] = endpoint
+    existing_endpoints = await endpoints_.get_existing_endpoints()
 
-    service_existing_endpoints = await endpointda.get_endpoints(service_name=service_name, internal_data=True)
-    for ep in service_existing_endpoints:
-        if ep['path'] not in endpoints_dictionary:
-            if ep['new_service']:
-                await _move_endpoint_to_new_service(ep['path'], ep['new_service'], ep['methods'])
+    service_existing_endpoints = {k: ep for k, ep in existing_endpoints.items()
+                                  if ep.service == service_name}
+    for k, ep in service_existing_endpoints.items():
+        if k not in endpoints_dictionary:
+            if ep.new_service:
+                await _move_endpoint_to_new_service(ep)
             else:
-                await endpointda.delete_endpoint(ep['path'])
+                await endpointda.delete_endpoint(ep.stripped_path)
 
     taken_endpoints = []
-    for ep in endpoints:
-        if ep['path'] in existing_endpoints_dict:
-            existing_ep = existing_endpoints_dict[ep['path']]
-            if existing_ep['service'] == service_name:
-                await endpointda.update_endpoint(ep['path'], service_name, methods=ep['methods'])
+    for stripped_path, ep in endpoints_dictionary.items():
+        if stripped_path in existing_endpoints:
+            existing_ep = existing_endpoints[stripped_path]
+            if existing_ep.service == service_name:
+                diff = copy(existing_ep)
+                diff.path = ep.path
+                diff.methods = ep.methods
+                await endpointda.update_endpoint(diff)
             else:
-                if existing_ep['locked']:
-                    taken_endpoints.append(ep['path'])
+                if existing_ep.locked:
+                    taken_endpoints.append(ep.path)
                     continue
-                elif existing_ep['new_service'] == service_name:
+                elif existing_ep.new_service == service_name:
                     continue
-                elif existing_ep['new_service'] is None:
-                    await endpointda.update_endpoint(ep['path'],
-                                                     existing_ep['service'],
-                                                     new_service=service_name,
-                                                     locked=True)
+                elif not existing_ep.new_service:
+                    diff = copy(existing_ep)
+                    diff.new_service = service_name
+                    diff.locked = True
+
+                    await endpointda.update_endpoint(diff)
                 else:
-                    taken_endpoints.append(ep['path'])
+                    taken_endpoints.append(ep.path)
                     continue
         else:
-            await endpointda.add_endpoint(ep['path'], ep['methods'], service_name)
+            ep.service = service_name
+            await endpointda.add_endpoint(ep)
 
     if taken_endpoints:
         return JSONResponse({'message': 'failed to register existing paths',
@@ -100,10 +109,12 @@ async def delete_service(request: Request):
     return JSONResponse(status_code=204)
 
 
-async def _move_endpoint_to_new_service(path, service, methods):
-    await endpointda.update_endpoint(path, service,
-                                     methods=methods,
-                                     deprecated=False,
-                                     locked=True,
-                                     toggle=None,
-                                     new_service=None)
+async def _move_endpoint_to_new_service(endpoint):
+    diff = copy(endpoint)
+    diff.deprecated = False
+    diff.locked = True
+    diff.toggle = ''
+    diff.service = endpoint.new_service
+    diff.new_service = ''
+
+    await endpointda.update_endpoint(endpoint)

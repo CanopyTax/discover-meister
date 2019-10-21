@@ -20,5 +20,6 @@ endpoints = Table(
     Column('deprecated', Boolean, server_default=sa.text('false')),
     Column('locked', Boolean, server_default=sa.text('true')),
     Column('new_service', String, nullable=True),
-    Column('toggle', String, nullable=True)
+    Column('toggle', String, nullable=True),
+    Column('stripped_path', String, index=True, nullable=True)
 )

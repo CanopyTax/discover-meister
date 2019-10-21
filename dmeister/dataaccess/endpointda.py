@@ -1,11 +1,13 @@
+from typing import List
+
 from asyncpgsa import pg
 from sqlalchemy import text
 
-from dmeister.validation import allowed_methods
+from ..models import Endpoint
 from . import db
 
 
-async def get_endpoints(service_name=None, internal_data=False):
+async def get_endpoints(service_name=None) -> List[Endpoint]:
     query = db.endpoints.select()
     if service_name:
         query = query.where(db.endpoints.c.service == service_name)
@@ -13,26 +15,26 @@ async def get_endpoints(service_name=None, internal_data=False):
     results = await pg.fetch(query)
     endpoints = []
     for row in results:
-        endpoint = _transform_endpoint(row, internal_data=internal_data)
+        endpoint = Endpoint.from_db(row)
         endpoints.append(endpoint)
 
     return endpoints
 
 
-async def add_endpoint(path, methods, service_name):
-    if methods:
-        methods = _clean_methods(methods)
-    insert = db.endpoints.insert().values(path=path,
-                                          methods=methods,
-                                          service=service_name,
-                                          locked=True)
+async def add_endpoint(endpoint: Endpoint):
+    insert = db.endpoints.insert()\
+        .values(path=endpoint.path,
+                stripped_path=endpoint.stripped_path,
+                methods=endpoint.methods,
+                service=endpoint.service,
+                locked=True)
     ep_id = await pg.fetchval(insert)
     return ep_id
 
 
-async def delete_endpoint(path):
+async def delete_endpoint(stripped_path):
     await pg.fetchval(db.endpoints.delete()
-                      .where(db.endpoints.c.path == path))
+                      .where(db.endpoints.c.stripped_path == stripped_path))
 
 
 async def delete_endpoints_for_service(service, connection=None):
@@ -42,48 +44,21 @@ async def delete_endpoints_for_service(service, connection=None):
                               .where(db.endpoints.c.service == service))
 
 
-async def update_endpoint(path, service_name,
-                          methods=None, locked=None, deprecated=None, new_service=None, toggle=None):
-    if methods:
-        methods = _clean_methods(methods)
+async def update_endpoint(endpoint: Endpoint) -> Endpoint:
+        #path, service_name,
+        #                  methods=None, locked=None, deprecated=None, new_service=None,
+        #                  toggle=None, new_path=None):
 
-    values = {'path': path, 'service': service_name}
-    if methods:
-        values['methods'] = methods
-    if locked is not None:
-        values['locked'] = locked
-    if deprecated is not None:
-        values['deprecated'] = deprecated
-    if new_service:
-        values['new_service'] = new_service
-    if toggle:
-        values['toggle'] = toggle
+    values = {'service': endpoint.service,
+              'methods': endpoint.methods,
+              'locked': endpoint.locked,
+              'deprecated': endpoint.deprecated,
+              'new_service': endpoint.new_service,
+              'toggle': endpoint.toggle,
+              'path': endpoint.path}
 
     update = db.endpoints.update().values(values) \
-        .where(db.endpoints.c.path == path).returning(text('*'))
+        .where(db.endpoints.c.stripped_path == endpoint.stripped_path).returning(text('*'))
 
     ep = await pg.fetchrow(update)
-    return _transform_endpoint(ep)
-
-
-def _transform_endpoint(endpoint, internal_data=True):
-    ep = {'id': endpoint['id'],
-          'path': endpoint['path'],
-          'service': endpoint['service'],
-          'methods': endpoint['methods'],
-          'deprecated': endpoint['deprecated']}
-    if internal_data:
-        ep['locked'] = endpoint['locked']
-        ep['new_service'] = endpoint['new_service']
-        ep['toggle'] = endpoint['toggle']
-    return ep
-
-
-def _clean_methods(methods):
-    cleaned_methods = set()
-    for m in methods:
-        m = m.lower()
-        if m in allowed_methods:
-            cleaned_methods.add(m)
-
-    return list(cleaned_methods)
+    return Endpoint.from_db(ep)

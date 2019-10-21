@@ -1,6 +1,6 @@
 from starlette.exceptions import HTTPException
 
-allowed_methods = ['post', 'get', 'put', 'patch', 'delete', 'head', 'options']
+from . import models
 
 
 def validate_endpoints(endpoints, required_fields=None):
@@ -13,7 +13,7 @@ def validate_endpoints(endpoints, required_fields=None):
 
         if 'methods' in required_fields or 'methods' in e:
             for m in e['methods']:
-                if m.lower() not in allowed_methods:
+                if m.lower() not in models.ALLOWED_METHODS:
                     raise HTTPException(400, f"'{m}' is not a valid method")
 
 
