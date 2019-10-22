@@ -2,11 +2,12 @@ FROM python:3.7-alpine
 
 ENV PYCURL_SSL_LIBRARY=openssl \
     PYTHONPATH=. \
+    PATH="/root/.poetry/bin:$PATH" \
     DOCKER=True
 
 # compile requirements for some python libraries
 RUN apk --no-cache add curl-dev bash postgresql-dev \
-    build-base libffi-dev libressl-dev tini
+    build-base libffi-dev libressl-dev tini curl
 
 RUN curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python3 && \
     export PYCURL_SSL_LIBRARY=openssl && \
