@@ -6,17 +6,17 @@ ENV PYCURL_SSL_LIBRARY=openssl \
 
 # compile requirements for some python libraries
 RUN apk --no-cache add curl-dev bash postgresql-dev \
-    build-base libffi-dev libressl-dev tini && \
-    python3 -m pip install invoke alembic poetry
+    build-base libffi-dev libressl-dev tini
 
+RUN RUN curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python3
+
+WORKDIR /app
 # install python reqs
 COPY ["pyproject.toml", "poetry.lock", "/app/"]
-WORKDIR /app
 
 RUN export PYCURL_SSL_LIBRARY=openssl && \
     poetry config settings.virtualenvs.create false && \
     poetry install -vvv --no-dev
-
 
 # build frontend
 COPY dmeister/static /app/dmeister/static
@@ -31,5 +31,5 @@ RUN apk --no-cache add nodejs npm git && \
 
 
 EXPOSE 8080
-CMD ["tini", "./startup.sh"]
 COPY . /app
+CMD ["tini", "./startup.sh"]
