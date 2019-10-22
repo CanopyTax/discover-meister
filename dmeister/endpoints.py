@@ -7,7 +7,7 @@ from starlette.responses import JSONResponse
 import howard
 
 from .dataaccess import endpointda
-from .models import Endpoint, Endpoints
+from .models import Endpoints
 
 
 async def get_all_endpoints(request: Request):
@@ -86,8 +86,9 @@ async def search_endpoints(request: Request):
 
     return JSONResponse(path_to_endpoints_dict)
 
-# Supports wildcards before . : / $
+
 def _replace_wildcards_with_regex(path):
+    # Supports wildcards before . : / $
     return re.sub(re.compile(r"({.*?}([/:.]|$))"), _replacement_func, path)
 
 

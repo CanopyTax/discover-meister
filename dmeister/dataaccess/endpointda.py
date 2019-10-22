@@ -45,10 +45,6 @@ async def delete_endpoints_for_service(service, connection=None):
 
 
 async def update_endpoint(endpoint: Endpoint) -> Endpoint:
-        #path, service_name,
-        #                  methods=None, locked=None, deprecated=None, new_service=None,
-        #                  toggle=None, new_path=None):
-
     values = {'service': endpoint.service,
               'methods': endpoint.methods,
               'locked': endpoint.locked,
