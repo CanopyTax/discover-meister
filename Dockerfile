@@ -10,7 +10,7 @@ RUN apk --no-cache add curl-dev bash postgresql-dev \
     python3 -m pip install invoke alembic poetry
 
 # install python reqs
-COPY ["pyproject.toml", "pyproject.lock", "/app/"]
+COPY ["pyproject.toml", "poetry.lock", "/app/"]
 WORKDIR /app
 
 RUN export PYCURL_SSL_LIBRARY=openssl && \
