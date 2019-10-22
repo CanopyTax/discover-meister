@@ -32,7 +32,7 @@ def upgrade():
     for row in endpoints:
         ep = Endpoint.from_db(row)
         bind.execute(db.endpoints.update().values(stripped_path=ep.stripped_path)
-                     .where(path=ep.path))
+                     .where(db.endpoints.c.path == ep.path))
 
 
 def downgrade():
