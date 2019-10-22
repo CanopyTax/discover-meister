@@ -8,15 +8,15 @@ ENV PYCURL_SSL_LIBRARY=openssl \
 RUN apk --no-cache add curl-dev bash postgresql-dev \
     build-base libffi-dev libressl-dev tini
 
-RUN RUN curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python3
+RUN curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python3 && \
+    export PYCURL_SSL_LIBRARY=openssl && \
+    poetry config settings.virtualenvs.create false
 
 WORKDIR /app
 # install python reqs
 COPY ["pyproject.toml", "poetry.lock", "/app/"]
 
-RUN export PYCURL_SSL_LIBRARY=openssl && \
-    poetry config settings.virtualenvs.create false && \
-    poetry install -vvv --no-dev
+RUN poetry install -vvv --no-dev
 
 # build frontend
 COPY dmeister/static /app/dmeister/static
