@@ -35,17 +35,17 @@ _allowed_methods = ["post", "get", "put", "patch", "delete", "head", "options"]
 
 _test_methods = [method for method in _allowed_methods]
 
-_endpoints = [{'path': '/api/highground', 'methods': _test_methods},
-              {'path': '/api/the_force', 'methods': ['post', 'get']},
-              {'path': '/api/wookies/{name}/bandoliers', 'methods': ['post', 'get']},
-              {'path': '/api/clones/{id}/blasters/{id}', 'methods': ['post', 'get']},
-              {'path': '/api/bad_feeling', 'methods': ['post', 'get']},
-              {'path': '/api/bad_feeling/{about_this}', 'methods': ['post', 'get']},
-              {'path': '/api/bad_feeling/traps', 'methods': ['post', 'get']},
-              {'path': '/api/bad_feeling/{}/traps/{}', 'methods': ['post', 'get']},
-              {'path': '/api/mouse_droid/{id}:discover', 'methods': ['post', 'get']},
-              {'path': '/api/mouse_droid/favorite:discover', 'methods': ['post', 'get']},
-              {'path': '/api/hello_there', 'methods': ['get']}]
+_endpoints = [{'path': 'api/highground', 'methods': _test_methods},
+              {'path': 'api/the_force', 'methods': ['post', 'get']},
+              {'path': 'api/wookies/{name}/bandoliers', 'methods': ['post', 'get']},
+              {'path': 'api/clones/{id}/blasters/{id}', 'methods': ['post', 'get']},
+              {'path': 'api/bad_feeling', 'methods': ['post', 'get']},
+              {'path': 'api/bad_feeling/{about_this}', 'methods': ['post', 'get']},
+              {'path': 'api/bad_feeling/traps', 'methods': ['post', 'get']},
+              {'path': 'api/bad_feeling/{}/traps/{}', 'methods': ['post', 'get']},
+              {'path': 'api/mouse_droid/{id}:discover', 'methods': ['post', 'get']},
+              {'path': 'api/mouse_droid/favorite:discover', 'methods': ['post', 'get']},
+              {'path': 'api/hello_there', 'methods': ['get']}]
 
 
 def test_put_service(client):
@@ -151,7 +151,7 @@ def test_get_endpoints(client):
     found = False
     for endpoint in endpoints:
         # these things should always be in the body
-        assert 'id' in endpoint
+        assert 'endpoint_id' in endpoint
         assert 'service' in endpoint
         assert 'path' in endpoint
         assert 'methods' in endpoint
@@ -163,7 +163,7 @@ def test_get_endpoints(client):
         assert 'new_service' not in endpoint
 
         # now check for our specific endpoint
-        if endpoint['path'] == '/api/hello_there':
+        if endpoint['path'] == 'api/hello_there':
             found = True
 
     assert found
@@ -196,12 +196,12 @@ def test_search_endpoints(client):
     for path in body['paths']:
         assert path in resp_body
 
-    assert resp_body[highground_path]['path'] == '/api/highground'
-    assert resp_body[wookies_wildcard_path]['path'] == '/api/wookies/{name}/bandoliers'
-    assert resp_body[bad_feeling_wildcard_path]['path'] == '/api/bad_feeling/{about_this}'
-    assert resp_body[bad_feeling_traps_path]['path'] == '/api/bad_feeling/traps'
-    assert resp_body[mouse_droid_wildcard_path]['path'] == '/api/mouse_droid/{id}:discover'
-    assert resp_body[mouse_droid_favorite_path]['path'] == '/api/mouse_droid/favorite:discover'
+    assert resp_body[highground_path]['path'] == 'api/highground'
+    assert resp_body[wookies_wildcard_path]['path'] == 'api/wookies/{name}/bandoliers'
+    assert resp_body[bad_feeling_wildcard_path]['path'] == 'api/bad_feeling/{about_this}'
+    assert resp_body[bad_feeling_traps_path]['path'] == 'api/bad_feeling/traps'
+    assert resp_body[mouse_droid_wildcard_path]['path'] == 'api/mouse_droid/{id}:discover'
+    assert resp_body[mouse_droid_favorite_path]['path'] == 'api/mouse_droid/favorite:discover'
 
     assert not resp_body[wookies_non_existent_path]
     assert not resp_body[clones_non_existent_path]
@@ -209,12 +209,12 @@ def test_search_endpoints(client):
 
 @pytest.mark.parametrize('search_term, expected',
                          [('api', [e['path'] for e in _endpoints]),
-                          ('/api/highground', ['/api/highground']),
-                          ('highground', ['/api/highground']),
-                          ('/api/bad_feeling', ['/api/bad_feeling', '/api/bad_feeling/{about_this}',
-                                                '/api/bad_feeling/traps', '/api/bad_feeling/{}/traps/{}']),
-                          ('bad_feeling/traps', ['/api/bad_feeling/traps']),
-                          ('bad_feeling/wildcard', ['/api/bad_feeling/{about_this}', '/api/bad_feeling/{}/traps/{}']),
+                          ('/api/highground', ['api/highground']),
+                          ('highground', ['api/highground']),
+                          ('/api/bad_feeling', ['api/bad_feeling', 'api/bad_feeling/{about_this}',
+                                                'api/bad_feeling/traps', 'api/bad_feeling/{}/traps/{}']),
+                          ('bad_feeling/traps', ['api/bad_feeling/traps']),
+                          ('bad_feeling/wildcard', ['api/bad_feeling/{about_this}', 'api/bad_feeling/{}/traps/{}']),
                           ('just_a_wildcard', []),
                           ('/just_a_wildcard', []),
                           ('just_a_wildcard/', [])])
@@ -244,7 +244,7 @@ def test_add_new_service_existing_route(client):
     body = response.json()
     assert 'message' in body
     assert 'paths' in body
-    assert '/api/highground' in body['paths']
+    assert 'api/highground' in body['paths']
 
 
 def test_unlock_route(client):
@@ -289,7 +289,7 @@ def test_add_new_service_transitioning_route(client):
     body = response.json()
     assert 'message' in body
     assert 'paths' in body
-    assert '/api/highground' in body['paths']
+    assert 'api/highground' in body['paths']
 
 
 def test_complete_route_takeover(client):
@@ -337,6 +337,65 @@ def test_patch_endpoints_validation(client, body):
     assert response.json().get('message') is not None
 
 
+def test_duplicate_endpoint(client):
+    body = {
+        'name': 'chewy',
+        'protocols': {'http': {'host': 'http://chewy'}},
+        'meta': {'walking_carpet': True, 'squad': 'millennium'},
+        'endpoints': [{'path': '/api/sidekick/{id}', 'methods': ['GET']}]
+    }
+
+    response = client.put('/api/services/chewy', json=body)
+    assert response.status_code == 200
+
+    body = {
+        'name': 'jar_jar',
+        'protocols': {'http': {'host': 'http://jar_jar'}},
+        'meta': {'dark_lord': True, 'squad': 'gunga'},
+        'endpoints': [{'path': '/api/sidekick/{id}', 'methods': ['GET']}]
+    }
+
+    response = client.put('/api/services/jar_jar', json=body)
+    assert response.status_code == 409
+
+    # try again with a different key name
+    body['endpoints'][0]['path'] = '/api/sidekick/{sidekick_id}'
+
+    response = client.put('/api/services/jar_jar', json=body)
+    assert response.status_code == 409
+    body = response.json()
+    assert body
+
+    client.delete('/api/services/chewy')
+
+
+def test_register_existing_route_new_variable_name(client):
+    body = {
+        'name': 'chewy',
+        'protocols': {'http': {'host': 'http://chewy'}},
+        'meta': {'walking_carpet': True, 'squad': 'millennium'},
+        'endpoints': [{'path': '/api/sidekick/{id}', 'methods': ['GET']}]
+    }
+
+    response = client.put('/api/services/chewy', json=body)
+    assert response.status_code == 200
+
+    # now do it again with a new var name
+    body['endpoints'][0]['path'] = '/api/sidekick/{sidekick_id}'
+    response = client.put('/api/services/chewy', json=body)
+    assert response.status_code == 200
+
+    endpoints = response.json().get('endpoints')
+    assert endpoints == 'http://testserver/services/chewy/endpoints'
+
+    response = client.get('/api/services/chewy/endpoints')
+    assert response.status_code == 200
+    endpoints = response.json().get('endpoints')
+    chewy_endpoints = [endpoint for endpoint in endpoints if endpoint['service'] == 'chewy']
+    assert len(chewy_endpoints) == 1
+    assert chewy_endpoints[0].get('path') == 'api/sidekick/{sidekick_id}'
+
+
 def test_delete(client):
     response = client.delete('/api/services/obi_wan')
     assert response.status_code == 204
@@ -361,3 +420,4 @@ def test_cleanup(client):
     client.delete('/api/services/anakin')
     client.delete('/api/services/han')
     client.delete('/api/services/chewy')
+    client.delete('/api/services/jar_jar')

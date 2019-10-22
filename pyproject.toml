@@ -22,6 +22,7 @@ sentry-asgi = "^0.1.5"
 schedule = "^0.6.0"
 alembic = "^1.0"
 requests = "^2.21"
+howard = "^1.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.7"

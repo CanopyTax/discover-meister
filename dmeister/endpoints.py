@@ -1,11 +1,13 @@
 import re
 import urllib.parse
+from copy import copy
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+import howard
 
-from dmeister.validation import validate_patch_endpoints_request
 from .dataaccess import endpointda
+from .models import Endpoint, Endpoints
 
 
 async def get_all_endpoints(request: Request):
@@ -13,18 +15,18 @@ async def get_all_endpoints(request: Request):
     from_db = await endpointda.get_endpoints()
 
     if path:
-        search_term = urllib.parse.unquote(path)
+        search_term = urllib.parse.unquote_plus(path)
         results = _filter_endpoints(search_term, from_db)
     else:
         results = from_db
-    return JSONResponse({'endpoints': results})
+    return JSONResponse(howard.to_dict(Endpoints(results)))
 
 
 async def get_endpoints_for_service(request: Request):
     service_name = request.path_params.get('name')
     results = await endpointda.get_endpoints(service_name=service_name)
     if results:
-        return JSONResponse({'endpoints': results})
+        return JSONResponse(howard.to_dict(Endpoints(results)))
     else:
         return JSONResponse({'message': f'Service by the name {service_name} doesnt exist'},
                             status_code=404)
@@ -32,39 +34,38 @@ async def get_endpoints_for_service(request: Request):
 
 async def patch_endpoints_for_service(request: Request):
     body = await request.json()
-    validate_patch_endpoints_request(request, body)
 
     service_name = request.path_params.get('name')
-    endpoints = body.get('endpoints')
+    endpoints = howard.from_dict(body, Endpoints)
 
-    existing_endpoints = await endpointda.get_endpoints(internal_data=True)
-    endpoints_dictionary = {}
-    for endpoint in existing_endpoints:
-        endpoints_dictionary[endpoint['path']] = endpoint
+    existing_endpoints = await endpointda.get_endpoints()
+    endpoints_dictionary = {e.stripped_path: e for e in existing_endpoints}
 
     results = []
-    for ep in endpoints:
-        if ep['path'] not in endpoints_dictionary:
-            path = ep['path']
-            return JSONResponse({'message': f'endpoint with path {path} does not exist'},
+    for ep in endpoints.endpoints:
+        if ep.stripped_path not in endpoints_dictionary:
+            return JSONResponse({'message': f'endpoint with path {ep.path} does not exist'},
                                 status_code=404)
+
+        existing_ep = endpoints_dictionary[ep.stripped_path]
+        if existing_ep.service != service_name:
+            if existing_ep.new_service != service_name:
+                return JSONResponse(
+                    {'message': 'cannot PATCH an endpoint owned by another service'},
+                    status_code=400)
+            diff = copy(existing_ep)
+            diff.toggle = ep.toggle
+            ep = await endpointda.update_endpoint(existing_ep)
+            results.append(ep)
         else:
-            existing_ep = endpoints_dictionary[ep['path']]
-            if not existing_ep['service'] == service_name:
-                if not existing_ep.get('new_service') == service_name:
-                    return JSONResponse({'message': 'cannot PATCH an endpoint owned by another service'},
-                                        status_code=400)
-                ep = await endpointda.update_endpoint(ep['path'],
-                                                      existing_ep['service'],
-                                                      toggle=ep.get('toggle'))
-                results.append(ep)
-            ep = await endpointda.update_endpoint(ep['path'],
-                                                  service_name,
-                                                  locked=ep.get('locked'),
-                                                  deprecated=ep.get('deprecated'))
+            diff = existing_ep
+            diff.locked = ep.locked
+            diff.path = ep.path
+            diff.deprecated = ep.deprecated
+            ep = await endpointda.update_endpoint(diff)
             results.append(ep)
 
-    return JSONResponse({'endpoints': results})
+    return JSONResponse(howard.to_dict(Endpoints(endpoints=results)))
 
 
 async def search_endpoints(request: Request):
@@ -80,10 +81,10 @@ async def search_endpoints(request: Request):
 
     path_to_endpoints_dict = {}
     for p in paths:
-        path_to_endpoints_dict[p] = _resolve_path(p, tree, dictionary)
+        result = _resolve_path(p, tree, dictionary)
+        path_to_endpoints_dict[p] = howard.to_dict(result) if result else {}
 
     return JSONResponse(path_to_endpoints_dict)
-
 
 # Supports wildcards before . : / $
 def _replace_wildcards_with_regex(path):
@@ -115,7 +116,7 @@ def _filter_endpoints(search_term, endpoints):
         """
         check_patterns, next_generators = _get_next_search_iteration(n, search_term, len_parts, next_generators)
         for e in endpoints:
-            to_match = e['path']
+            to_match = e.path
             match = False
             for p in check_patterns:
                 if p.match(to_match):
@@ -177,7 +178,7 @@ def _rep_n(s, n, spl='/'):
 
 
 def _sort_by_path_hierarchy(endpoint, search_term):
-    path = endpoint['path']
+    path = endpoint.path
     index = path.find(search_term)
     return path.count('/', 0, index)
 
@@ -185,20 +186,24 @@ def _sort_by_path_hierarchy(endpoint, search_term):
 def _create_tree(endpoints):
     tree = {}
     for e in endpoints:
-        path = e['path'].strip('/')
+        path = e.stripped_path
         sub = tree
         for portion in path.split('/'):
-            portion = re.sub(re.compile(r'{.*?}'), '{}', portion)
             if sub.get(portion, None) is None:
                 sub[portion] = {}
             sub = sub[portion]
     return tree
 
 
+async def get_existing_endpoints():
+    results = await endpointda.get_endpoints()
+    return _create_dictionary(results)
+
+
 def _create_dictionary(endpoints):
     dictionary = {}
     for e in endpoints:
-        path = re.sub(re.compile(r'{.*?}'), '{}', e['path'])
+        path = e.stripped_path
         dictionary[path] = e
     return dictionary
 
@@ -217,4 +222,4 @@ def _resolve_path(path, tree, endpoint_dictionary):
             return None
         lookup_path += '/' + portion
         sub = sub[portion]
-    return endpoint_dictionary.get(lookup_path, None)
+    return endpoint_dictionary.get(lookup_path.strip('/'), None)
