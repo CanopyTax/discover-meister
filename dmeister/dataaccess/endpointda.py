@@ -44,7 +44,7 @@ async def delete_endpoints_for_service(service, connection=None):
                               .where(db.endpoints.c.service == service))
 
 
-async def update_endpoint(endpoint: Endpoint) -> Endpoint:1
+async def update_endpoint(endpoint: Endpoint) -> Endpoint:
     values = {'service': endpoint.service,
               'methods': endpoint.methods,
               'locked': endpoint.locked,
